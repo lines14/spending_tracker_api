@@ -23,26 +23,32 @@ def upgrade() -> None:
         batch_op.add_column(
             sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False)
         )
+
     with op.batch_alter_table("users") as batch_op:
         batch_op.add_column(
             sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False)
         )
+
     with op.batch_alter_table("product_groups") as batch_op:
         batch_op.add_column(
             sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False)
         )
+
     with op.batch_alter_table("product_types") as batch_op:
         batch_op.add_column(
             sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False)
         )
+
     with op.batch_alter_table("product_sub_types") as batch_op:
         batch_op.add_column(
             sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False)
         )
+
     with op.batch_alter_table("currencies") as batch_op:
         batch_op.add_column(
             sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False)
         )
+        
     with op.batch_alter_table("currency_rates") as batch_op:
         batch_op.add_column(
             sa.Column('updated_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False)

@@ -26,11 +26,13 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+
     op.create_index(op.f('ix_currency_rates_currency_id'), 'currency_rates', ['currency_id'], unique=True)
 
 
 def downgrade() -> None:
     with op.batch_alter_table('currency_rates') as batch_op:
         batch_op.drop_constraint('currency_rates_ibfk_1', type_='foreignkey')
+        
     op.drop_index(op.f('ix_currency_rates_currency_id'), table_name='currency_rates')
     op.drop_table('currency_rates')

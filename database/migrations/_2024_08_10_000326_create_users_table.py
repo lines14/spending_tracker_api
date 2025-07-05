@@ -26,6 +26,7 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+    
     op.create_index(op.f('ix_users_login'), 'users', ['login'], unique=False)
 
 

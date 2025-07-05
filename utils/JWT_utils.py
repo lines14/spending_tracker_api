@@ -16,6 +16,7 @@ class JWTUtils:
             login=login, 
             exp=datetime.utcnow() + timedelta(seconds=int(getenv('TOKEN_TTL')))
         )
+
         return jwt.encode(
             vars(payload), 
             StorageUtils.private_key, 
@@ -37,4 +38,5 @@ class JWTUtils:
     @staticmethod
     def __parse_public_key(key_pem: str) -> PublicKeyTypes:
         key_bytes = key_pem.encode()
+        
         return serialization.load_pem_public_key(key_bytes, backend=default_backend())

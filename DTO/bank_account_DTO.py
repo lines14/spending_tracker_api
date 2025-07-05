@@ -17,18 +17,21 @@ class BankAccountDTO(BaseDTO):
         min_length=account_min_length, 
         max_length=account_max_length
     )
+
     issuer_id: int = Field(
         default=..., 
         description=DataUtils.responses.issuer_id_validation_message,
         ge=issuer_id_min_value, 
         le=issuer_id_max_value
     )
+
     currency_id: int = Field(
         default=..., 
         description=DataUtils.responses.currency_id_validation_message,
         ge=currency_id_min_value, 
         le=currency_id_max_value
     )
+
     user_id: int = Field(
         default=..., 
         description=DataUtils.responses.user_id_validation_message
@@ -40,11 +43,15 @@ class BankAccountDTO(BaseDTO):
         account = StringValidator(values.account)
         issuer_id = IntegerValidator(values.issuer_id)
         currency_id = IntegerValidator(values.currency_id)
+
         if (not account.is_length_between(cls.account_min_length, cls.account_max_length) 
             or not account.is_alphanumeric_with_spaces()):
             raise ValueError(DataUtils.responses.account_validation_message)
+        
         if not issuer_id.is_in_range(cls.issuer_id_min_value, cls.issuer_id_max_value):
             raise ValueError(DataUtils.responses.issuer_id_validation_message)
+        
         if not currency_id.is_in_range(cls.currency_id_min_value, cls.currency_id_max_value):
             raise ValueError(DataUtils.responses.currency_id_validation_message)
+        
         return values

@@ -15,6 +15,7 @@ class RedisRepository:
             time=getenv('TOKEN_TTL'), 
             value=user_token
         )
+        
         await self.__client.setex(
             data.name, 
             data.time, 

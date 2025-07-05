@@ -8,5 +8,6 @@ class ErrorLog(BaseModel, table=True):
     stack: str = Field(nullable=True)
     message: str = Field(nullable=False)
     code: int = Field(nullable=True)
+    method_type: str = Field(nullable=True)
     body: str = Field(nullable=True)
     url: str = Field(nullable=True)

@@ -27,6 +27,7 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('version')
     )
+    
     op.create_index(op.f('ix_migrations_version'), 'migrations', ['version'], unique=True)
 
 

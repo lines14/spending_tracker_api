@@ -10,4 +10,5 @@ class FloatValidator:
     def has_two_decimal_places(self) -> bool:
         decimal_value = Decimal(str(self.value))
         quantized_value = decimal_value.quantize(Decimal('0.01'), rounding=ROUND_DOWN)
+        
         return decimal_value == quantized_value

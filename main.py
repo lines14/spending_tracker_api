@@ -57,33 +57,33 @@ async def template(request: Request) -> Response:
     return await template_controller.get_template(request)
 
 @app.post('/registration', response_model=ResponseContentDTO)
-async def create_user(user: UserDTO) -> Response:
-    return await user_controller.create_user(user)
+async def create_user(request: Request, user: UserDTO) -> Response:
+    return await user_controller.create_user(request, user)
 
 @app.delete('/user/{id}', response_model=ResponseContentDTO)
 async def delete_user(request: Request, id: int) -> Response:
-    return await user_controller.delete_user(id)
+    return await user_controller.delete_user(request, id)
 
 @app.post('/auth', response_model=ResponseContentDTO)
 async def auth(request: Request, user: UserDTO) -> Response:
     return await auth_controller.auth(request, user)
 
 @app.get('/greetings', response_model=ResponseContentDTO)
-async def greetings(request: Request) -> Response:
+async def greetings() -> Response:
     return await greetings_controller.greetings()
 
 @app.post('/purchase', response_model=ResponseContentDTO)
 async def create_purchase(request: Request, purchase: PurchaseDTO) -> Response:
-    return await purchase_controller.create_purchase(purchase)
+    return await purchase_controller.create_purchase(request, purchase)
 
 @app.post('/bank_account', response_model=ResponseContentDTO)
-async def create_bank_account(request: Request, bank_account: BankAccountDTO) -> Response:
+async def create_bank_account(bank_account: BankAccountDTO) -> Response:
     return await bank_account_controller.create_bank_account(bank_account)
 
 @app.get('/bank_account/{id}', response_model=BankAccountDTO)
 async def get_bank_account(request: Request, id: int) -> Response:
-    return await bank_account_controller.get_bank_account(id)
+    return await bank_account_controller.get_bank_account(request, id)
 
 @app.delete('/bank_account/{id}', response_model=ResponseContentDTO)
 async def delete_bank_account(request: Request, id: int) -> Response:
-    return await bank_account_controller.delete_bank_account(id)
+    return await bank_account_controller.delete_bank_account(request, id)

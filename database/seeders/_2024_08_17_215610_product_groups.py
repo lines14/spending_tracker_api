@@ -15,4 +15,5 @@ class ProductGroups(BaseSeeder):
                 ProductGroup(group='Одежда'),
                 ProductGroup(group='Услуги')
             ])
+            
         asyncio.run(seed())

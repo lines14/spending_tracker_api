@@ -3,21 +3,33 @@ import json
 import traceback
 from models import ErrorLog
 from fastapi import Request, Response
-from DTO import StackElementDTO, ErrorInfoDTO
 from utils import Logger, ResponseUtils, DataUtils
 from starlette.middleware.base import BaseHTTPMiddleware
+from DTO import StackElementDTO, ErrorInfoDTO, ReceiveDTO
 
 class LogErrorsMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
 
     async def dispatch(self, request: Request, call_next) -> Response:
+        body_bytes = await request.body()
+
+        async def receive():
+            return vars(ReceiveDTO(
+                type="http.request", 
+                body=json.loads(body_bytes), 
+                more_body=False
+            ))
+        
+        request = Request(request.scope, receive)
+        
         try:
             return await call_next(request)
         except Exception as e:
             stack = []
             exc_type, exc_value, exc_tb = sys.exc_info()
             stack_summary = traceback.extract_tb(exc_tb)
+
             for frame in stack_summary:
                 stack_element = StackElementDTO(
                     file=frame.filename, 
@@ -47,6 +59,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
 
             try:
                 error_response = json.loads(str(e))
-                return await ResponseUtils.error(*error_response)
+                
+                return await ResponseUtils.error(None, *error_response)
             except:
-                return await ResponseUtils.error(str(e))
+                return await ResponseUtils.error(None, str(e))

@@ -26,11 +26,13 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
+
     op.create_index(op.f('ix_product_sub_types_type_id'), 'product_sub_types', ['type_id'], unique=False)
 
 
 def downgrade() -> None:
     with op.batch_alter_table('product_sub_types') as batch_op:
         batch_op.drop_constraint('product_sub_types_ibfk_1', type_='foreignkey')
+        
     op.drop_index(op.f('ix_product_sub_types_type_id'), table_name='product_sub_types')
     op.drop_table('product_sub_types')

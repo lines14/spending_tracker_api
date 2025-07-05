@@ -1,6 +1,7 @@
 from .JWT_DTO import JWTDTO
 from .user_DTO import UserDTO
 from .redis_DTO import RedisDTO
+from .receive_DTO import ReceiveDTO
 from .response_DTO import ResponseDTO
 from .purchase_DTO import PurchaseDTO
 from .error_info_DTO import ErrorInfoDTO

@@ -21,4 +21,5 @@ class BankAccountIssuers(BaseSeeder):
                 BankAccountIssuer(issuer='VTB', country_code='RUS'),
                 BankAccountIssuer(issuer='OTP', country_code='RUS')
             ])
+            
         asyncio.run(seed())

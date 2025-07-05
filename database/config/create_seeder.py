@@ -29,5 +29,6 @@ class {class_name}(BaseSeeder):
 
     with open(os.path.join(cwd, 'database/seeders', version + '_' + file_name + '.py'), 'w') as file:
         file.write(content)
+        
     with open(os.path.join(cwd, 'database/seeders/__init__.py'), 'a') as file:
         file.write(f'\nfrom .{version}_{file_name} import {class_name}')

@@ -12,11 +12,13 @@ from pydantic import BaseModel, ValidationError, create_model
 
 class BaseModel(SQLModel):
     id: int = Field(primary_key=True, nullable=False)
+
     created_at: datetime = Field(
         sa_type=TIMESTAMP(timezone=True),
         sa_column_kwargs={"server_default": func.now()},
         nullable=False,
     )
+
     updated_at: datetime = Field(
         sa_type=TIMESTAMP(timezone=True),
         sa_column_kwargs={
@@ -25,6 +27,7 @@ class BaseModel(SQLModel):
         },
         nullable=False,
     )
+
     deleted_at: datetime = Field(
         sa_type=TIMESTAMP(timezone=True),
         nullable=True,
@@ -52,6 +55,7 @@ class BaseModel(SQLModel):
             errors = []
             validated_data = {}
             data = await request.json()
+
             for field in fields:
                 if field in data:
                     try:
@@ -59,6 +63,7 @@ class BaseModel(SQLModel):
                             'SingleFieldModel', 
                             **{field: (cls.__annotations__[field], ...)}
                         )
+
                         validated_field = SingleFieldModel(**{field: data[field]})
                         validated_data[field] = validated_field.dict()[field]
                     except ValidationError as e:
@@ -70,9 +75,12 @@ class BaseModel(SQLModel):
                         "msg": "Field required",
                         "input": None
                     })
+
             if errors:
                 raise HTTPException(422, detail=errors)
+            
             return cls(**validated_data)
+        
         return validate_fields
 
     class Config:

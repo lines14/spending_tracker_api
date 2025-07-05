@@ -8,6 +8,7 @@ def create_migration(name, version):
         "--message", name,
         "--rev-id", version
     ]
+    
     subprocess.run(command, check=True)
 
 if len(sys.argv) < 2 or len(sys.argv) > 2:

@@ -34,6 +34,7 @@ def upgrade() -> None:
     sa.Column('deleted_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
+    
     op.create_index(op.f('ix_error_logs_message'), 'error_logs', ['message'], unique=False)
 
 

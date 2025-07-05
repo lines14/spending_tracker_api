@@ -20,6 +20,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     op.drop_index(op.f('ix_sessions_login'), table_name='sessions')
+
     op.alter_column(
         'sessions', 
         'login', 
@@ -28,7 +29,9 @@ def upgrade() -> None:
         type_=sa.Integer(),
         existing_nullable=False
     )
+
     op.create_index(op.f('ix_sessions_user_id'), 'sessions', ['user_id'], unique=False)
+
     op.create_foreign_key(
         constraint_name='sessions_ibfk_1',
         source_table='sessions',
@@ -42,7 +45,9 @@ def upgrade() -> None:
 def downgrade() -> None:
     with op.batch_alter_table('sessions') as batch_op:
         batch_op.drop_constraint('sessions_ibfk_1', type_='foreignkey')
+
     op.drop_index(op.f('ix_sessions_user_id'), table_name='sessions')
+
     op.alter_column(
         'sessions', 
         'user_id', 
@@ -51,4 +56,5 @@ def downgrade() -> None:
         type_=sa.String(length=255),
         existing_nullable=False
     )
+    
     op.create_index(op.f('ix_sessions_login'), 'sessions', ['login'], unique=False)

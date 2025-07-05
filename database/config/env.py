@@ -38,19 +38,24 @@ target_metadata = Database.metadata
 def has_table(engine, table_name):
     inspector = reflection.Inspector.from_engine(engine)
     tables = inspector.get_table_names()
+
     return table_name in tables
 
 def filter_migrations(migrations: Dict[str, any], version: tuple) -> Dict[str, any]:
     sorted_keys = sorted(migrations.keys())
+
     if len(version) != 0:
         filtered_keys = [key for key in sorted_keys if key <= version[0]]
     else:
         filtered_keys = [sorted_keys[0]]
+
     filtered_dict = {key: migrations[key] for key in filtered_keys}
+
     return filtered_dict
 
 def get_migrations(dirname):
     migrations = {}
+
     for filename in os.listdir(dirname):
         if filename.endswith('.py'):
             delimiter = '_'
@@ -59,17 +64,21 @@ def get_migrations(dirname):
             first_part = filename[:second_delimiter_index]
             second_part = filename[second_delimiter_index + 1:]
             parts = [first_part] + second_part.split(delimiter, 3)
+
             if len(parts) >= 5:
                 version = '_'.join(parts[:4])
                 name = '_'.join(parts[4:]).strip('.py')
             else:
                 continue
+
             name = name.replace('_', ' ').strip()
             migrations[version] = name
+
     return migrations
 
 def log_migrations(connection, version, migrations):
     truncated_migrations = filter_migrations(migrations, version)
+
     if has_table(connection.engine, 'migrations'):
         for key, value in truncated_migrations.items():
             try:
@@ -77,6 +86,7 @@ def log_migrations(connection, version, migrations):
                     "INSERT INTO migrations (version, name) VALUES (:version, :name) "
                     "ON DUPLICATE KEY UPDATE name = :name;"
                 )
+                
                 connection.execute(sql, {"version": key, "name": value})
                 connection.commit()
             except Exception as e:

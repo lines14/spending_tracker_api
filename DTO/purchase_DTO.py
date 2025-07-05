@@ -15,10 +15,12 @@ class PurchaseDTO(BaseDTO):
         ge=cost_min_value, 
         le=cost_max_value
     )
+
     account_id: int = Field(
         default=..., 
         description=DataUtils.responses.account_id_validation_message
     )
+
     sub_type_id: int = Field(
         default=..., 
         description=DataUtils.responses.sub_type_id_validation_message,
@@ -31,9 +33,12 @@ class PurchaseDTO(BaseDTO):
     def validate_fields(cls, values):
         cost = FloatValidator(values.cost)
         sub_type_id = IntegerValidator(values.sub_type_id)
+
         if (not cost.has_two_decimal_places() 
             and not cost.is_in_range(cls.cost_min_value, cls.cost_max_value)):
             raise ValueError(DataUtils.responses.cost_validation_message)
+        
         if not sub_type_id.is_in_range(cls.sub_type_id_min_value, cls.sub_type_id_max_value):
             raise ValueError(DataUtils.responses.sub_type_id_validation_message)
+        
         return values

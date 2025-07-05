@@ -14,4 +14,5 @@ class Currencies(BaseSeeder):
                 Currency(currency='USD'),
                 Currency(currency='EUR')
             ])
+            
         asyncio.run(seed())

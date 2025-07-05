@@ -13,6 +13,7 @@ class DataUtils():
     def __nested_data_to_model(cls, dict):
         obj = cls()
         obj.__dict__.update(dict)
+        
         return obj
     
     @classmethod

@@ -10,7 +10,9 @@ class TemplateController:
             pythonVersion=version, 
             fastapiVersion=__version__
         )
+
         templates = Jinja2Templates(directory="../templates")
         template = templates.TemplateResponse("index.html", vars(data))
         ResponseTemplateDTO(**vars(template))
+        
         return template
