@@ -1,13 +1,10 @@
 from DTO import JWTDTO
 from config import Config
 from models import User, Session
-from utils.JWT_utils import JWTUtils
 from fastapi import Request, Response
-from utils.data_utils import DataUtils
-from utils.response_utils import ResponseUtils
-from utils.cryptography_utils import CryptographyUtils
 from starlette.middleware.base import BaseHTTPMiddleware
 from repositories.redis_repository import RedisRepository
+from utils import JWTUtils, DataUtils, ResponseUtils, CryptographyUtils
 
 class AuthMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):

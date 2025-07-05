@@ -80,6 +80,7 @@ def log_migrations(connection, version, migrations):
                 connection.execute(sql, {"version": key, "name": value})
                 connection.commit()
             except Exception as e:
+                Logger.log('\n' + '-' * 100 + '\n')
                 Logger.log(traceback.format_exc())
 
 def run_migrations_offline() -> None:

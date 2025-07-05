@@ -1,7 +1,8 @@
 import json
 from typing import Union
 from fastapi import Response
-from DTO import ResponseDTO, ResponseContentDTO
+from DTO.response_DTO import ResponseDTO
+from DTO.response_content_DTO import ResponseContentDTO
 
 class ResponseUtils:
     @staticmethod

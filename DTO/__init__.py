@@ -3,6 +3,7 @@ from .user_DTO import UserDTO
 from .redis_DTO import RedisDTO
 from .response_DTO import ResponseDTO
 from .purchase_DTO import PurchaseDTO
+from .error_info_DTO import ErrorInfoDTO
 from .bank_account_DTO import BankAccountDTO
 from .stack_element_DTO import StackElementDTO
 from .response_content_DTO import ResponseContentDTO

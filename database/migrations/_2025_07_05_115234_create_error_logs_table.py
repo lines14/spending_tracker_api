@@ -24,7 +24,7 @@ def upgrade() -> None:
     sa.Column('file', sa.String(length=255), nullable=True),
     sa.Column('line', sa.Integer(), nullable=True),
     sa.Column('snippet', sa.String(length=255), nullable=True),
-    sa.Column('stack', sa.String(length=255), nullable=True),
+    sa.Column('stack', sa.Text(), nullable=True),
     sa.Column('message', sa.String(length=255), nullable=False),
     sa.Column('code', sa.Integer(), nullable=True),
     sa.Column('body', sa.String(length=255), nullable=True),

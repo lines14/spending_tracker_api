@@ -1,9 +1,7 @@
 from DTO import UserDTO
 from models import User
 from fastapi import Response
-from utils.data_utils import DataUtils
-from utils.response_utils import ResponseUtils
-from utils.cryptography_utils import CryptographyUtils
+from utils import DataUtils, ResponseUtils, CryptographyUtils
 
 class UserController:
     async def create_user(self, user: UserDTO) -> Response:

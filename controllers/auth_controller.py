@@ -1,11 +1,8 @@
 from DTO import UserDTO
 from models import User, Session
-from utils.JWT_utils import JWTUtils
 from fastapi import Request, Response
-from utils.data_utils import DataUtils
-from utils.response_utils import ResponseUtils
-from utils.cryptography_utils import CryptographyUtils
 from repositories.redis_repository import RedisRepository
+from utils import JWTUtils, DataUtils, ResponseUtils, CryptographyUtils
 
 class AuthController:
     async def auth(self, request: Request, user: UserDTO) -> Response:

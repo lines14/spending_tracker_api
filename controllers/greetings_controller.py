@@ -1,6 +1,5 @@
 from fastapi import Response
-from utils.data_utils import DataUtils
-from utils.response_utils import ResponseUtils
+from utils import DataUtils, ResponseUtils
 
 class GreetingsController:
     async def greetings(self) -> Response:

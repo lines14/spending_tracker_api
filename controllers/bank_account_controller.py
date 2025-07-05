@@ -1,8 +1,7 @@
 from fastapi import Response
 from DTO import BankAccountDTO
 from models import BankAccount
-from utils.data_utils import DataUtils
-from utils.response_utils import ResponseUtils
+from utils import DataUtils, ResponseUtils
 
 class BankAccountController:
     async def create_bank_account(self, bank_account: BankAccountDTO) -> Response:

@@ -1,14 +1,13 @@
 from DTO import PurchaseDTO
 from fastapi import Response
-from utils.data_utils import DataUtils
 from models import Purchase, BankAccount
-from utils.response_utils import ResponseUtils
+from utils import DataUtils, ResponseUtils
 
 class PurchaseController:
     async def create_purchase(self, purchase: PurchaseDTO) -> Response:
-        new_purchase = Purchase(**vars(purchase))
-        existing_bank_account = await BankAccount(id=new_purchase.account_id).get()
+        existing_bank_account = await BankAccount(id=purchase.account_id).get()
         if existing_bank_account:
+            new_purchase = Purchase(**vars(purchase))
             await new_purchase.create()
             return await ResponseUtils.success(DataUtils.responses.purchase_created_message)
         else:
