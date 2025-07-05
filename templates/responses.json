@@ -1,7 +1,12 @@
 {
     "unauthorized_error": ["Unauthorized", "", 401],
+    "unauthenticated_error": ["Unauthenticated", "", 401],
+    "expired_token_error": ["Expired token", "", 401],
+    "invalid_token_error": ["Invalid token", "", 401],
     "invalid_credentials_error": ["Invalid credentials", "", 401],
     "user_exists_error": ["User already exists", "", 401],
+    "bank_account_not_exists_error": ["Bank account not exists", "", 401],
+
     "info_message": "Hello, this response was created in FastAPI",
     "authorized_message": "Successfully authorized in Spending tracker",
     "registered_message": "Successfully registered in Spending tracker",
@@ -17,6 +22,5 @@
     "purchase_created_message": "Successfully created purchase",
     "bank_account_created_message": "Successfully created bank account",
     "bank_account_deleted_message": "Successfully deleted bank account",
-    "bank_account_not_exists_error": ["Bank account not exists", "", 401],
     "bank_account_received_message": "Bank account was successfully received"
 }

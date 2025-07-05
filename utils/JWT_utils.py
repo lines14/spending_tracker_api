@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from utils.storage_utils import StorageUtils
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 
 class JWTUtils:
     @staticmethod
@@ -30,11 +31,11 @@ class JWTUtils:
                 algorithms=[getenv('ENCODE_ALGORITHM')]
             )
         except jwt.ExpiredSignatureError as e:
-            raise jwt.ExpiredSignatureError(json.dumps(DataUtils.responses.unauthorized_error))
+            raise jwt.ExpiredSignatureError(json.dumps(DataUtils.responses.expired_token_error))
         except jwt.InvalidTokenError as e:
-            raise e
+            raise jwt.InvalidTokenError(json.dumps(DataUtils.responses.invalid_token_error))
     
     @staticmethod
-    def __parse_public_key(key_pem: str) -> serialization.load_pem_public_key:
+    def __parse_public_key(key_pem: str) -> PublicKeyTypes:
         key_bytes = key_pem.encode()
         return serialization.load_pem_public_key(key_bytes, backend=default_backend())

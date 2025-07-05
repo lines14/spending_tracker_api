@@ -1,4 +1,4 @@
 .env
-log.txt
+error_logs.txt
 .pytest_cache/
 **/__pycache__

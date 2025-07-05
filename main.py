@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi.responses import HTMLResponse
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from middlewares.auth_middleware import AuthMiddleware
+from middlewares import AuthMiddleware, LogErrorsMiddleware
 from scheduler.currency_rates_updater import CurrencyRatesUpdater
 from DTO import UserDTO, ResponseContentDTO, PurchaseDTO, BankAccountDTO
 from handlers import (AuthHandler, TemplateHandler, GreetingsHandler, 
@@ -15,7 +15,6 @@ from handlers import (AuthHandler, TemplateHandler, GreetingsHandler,
 load_dotenv()
 
 auth_handler = AuthHandler()
-auth_middleware = AuthMiddleware()
 template_handler = TemplateHandler()
 purchase_handler = PurchaseHandler()
 greetings_handler = GreetingsHandler()
@@ -50,6 +49,9 @@ app.add_middleware(
     allow_headers=['*']
 )
 
+app.add_middleware(AuthMiddleware)
+app.add_middleware(LogErrorsMiddleware)
+
 @app.get("/", response_class=HTMLResponse)
 async def template(request: Request) -> Response:
     return await template_handler.template(request)
@@ -63,26 +65,21 @@ async def auth(request: Request, user: UserDTO) -> Response:
     return await auth_handler.auth(request, user)
 
 @app.get('/greetings', response_model=ResponseContentDTO)
-@auth_middleware.check_bearer_token
 async def greetings(request: Request) -> Response:
     return await greetings_handler.greetings()
 
 @app.post('/purchase', response_model=ResponseContentDTO)
-@auth_middleware.check_bearer_token
 async def create_purchase(request: Request, purchase: PurchaseDTO) -> Response:
     return await purchase_handler.create_purchase(purchase)
 
 @app.post('/bank_account', response_model=ResponseContentDTO)
-@auth_middleware.check_bearer_token
 async def create_bank_account(request: Request, bank_account: BankAccountDTO) -> Response:
     return await bank_account_handler.create_bank_account(bank_account)
 
 @app.get('/bank_account/{id}', response_model=BankAccountDTO)
-@auth_middleware.check_bearer_token
 async def get_bank_account(request: Request, id: int) -> Response:
     return await bank_account_handler.get_bank_account(id)
 
 @app.delete('/bank_account/{id}', response_model=ResponseContentDTO)
-@auth_middleware.check_bearer_token
 async def delete_bank_account(request: Request, id: int) -> Response:
     return await bank_account_handler.delete_bank_account(id)
