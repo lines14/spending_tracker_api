@@ -30,3 +30,11 @@ class Config(BaseSettings):
     def REDIS_URL(self) -> str:
         return (f"redis://:{self.REDIS_ROOT_PASSWORD}@"
                 f"{self.REDIS_HOST}:{self.REDIS_PORT}/0")
+    
+    @property
+    def PROTECTED_PATHS(self) -> list:
+        return [
+            "/greetings", 
+            "/purchase", 
+            "/bank_account"
+        ]
