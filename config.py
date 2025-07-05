@@ -34,6 +34,7 @@ class Config(BaseSettings):
     @property
     def PROTECTED_PATHS(self) -> list:
         return [
+            "/user", 
             "/greetings", 
             "/purchase", 
             "/bank_account"

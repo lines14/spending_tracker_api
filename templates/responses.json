@@ -7,11 +7,17 @@
     "invalid_token_error": ["Invalid token", "", 401],
     "invalid_credentials_error": ["Invalid credentials", "", 401],
     "user_exists_error": ["User already exists", "", 409],
-    "bank_account_not_exists_error": ["Bank account not exists", "", 404],
+    "bank_account_not_found_error": ["Bank account not found", "", 404],
 
     "info_message": "Hello, this response was created in FastAPI",
     "authorized_message": "Successfully authorized in Spending tracker",
-    "registered_message": "Successfully registered in Spending tracker",
+    "user_created_message": "Successfully registered in Spending tracker",
+    "user_deleted_message": "Successfully deleted user {id}",
+    "purchase_created_message": "Successfully created purchase",
+    "bank_account_created_message": "Successfully created bank account",
+    "bank_account_deleted_message": "Successfully deleted bank account {id}",
+    "bank_account_received_message": "Bank account was successfully received",
+
     "login_validation_message": "login must be without spaces and can contain only letters and numbers",
     "password_validation_message": "password must be without spaces and can contain only letters and numbers",
     "account_validation_message": "account can contain only letters, numbers and spaces",
@@ -20,9 +26,5 @@
     "currency_id_validation_message": "currency_id must be an existing id in currencies table",
     "account_id_validation_message": "account_id must be an existing id in bank_accounts table",
     "issuer_id_validation_message": "issuer_id must be an existing id in bank_account_issuers table",
-    "user_id_validation_message": "user_id must be an existing id in users table",
-    "purchase_created_message": "Successfully created purchase",
-    "bank_account_created_message": "Successfully created bank account",
-    "bank_account_deleted_message": "Successfully deleted bank account",
-    "bank_account_received_message": "Bank account was successfully received"
+    "user_id_validation_message": "user_id must be an existing id in users table"
 }

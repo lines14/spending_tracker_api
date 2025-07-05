@@ -3,8 +3,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi import Request, Response, __version__
 from DTO import ResponseTemplateDTO, ResponseTemplateContextDTO
 
-class TemplateHandler:
-    async def template(self, request: Request) -> Response:
+class TemplateController:
+    async def get_template(self, request: Request) -> Response:
         data = ResponseTemplateContextDTO(
             request=request, 
             pythonVersion=version, 

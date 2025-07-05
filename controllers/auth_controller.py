@@ -7,7 +7,7 @@ from utils.response_utils import ResponseUtils
 from utils.cryptography_utils import CryptographyUtils
 from repositories.redis_repository import RedisRepository
 
-class AuthHandler:
+class AuthController:
     async def auth(self, request: Request, user: UserDTO) -> Response:
         existing_user = await User(login=user.login).get()
         if existing_user and CryptographyUtils.verify_string(user.password, existing_user.hashed_password):

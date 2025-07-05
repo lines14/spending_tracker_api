@@ -4,7 +4,7 @@ from models import BankAccount
 from utils.data_utils import DataUtils
 from utils.response_utils import ResponseUtils
 
-class BankAccountHandler:
+class BankAccountController:
     async def create_bank_account(self, bank_account: BankAccountDTO) -> Response:
         new_bank_account = BankAccount(**vars(bank_account))
         await new_bank_account.create()
@@ -18,12 +18,12 @@ class BankAccountHandler:
                 vars(BankAccountDTO(**vars(existing_bank_account)))
             )
         else:
-            return await ResponseUtils.error(*DataUtils.responses.bank_account_not_exists_error)
+            return await ResponseUtils.error(*DataUtils.responses.bank_account_not_found_error)
 
     async def delete_bank_account(self, id: int) -> Response:
         existing_bank_account = await BankAccount(id=id).get()
         if existing_bank_account:
-            await BankAccount(id=id).delete()
-            return await ResponseUtils.success(DataUtils.responses.bank_account_deleted_message)
+            await BankAccount(id=existing_bank_account.id).delete()
+            return await ResponseUtils.success(DataUtils.responses.bank_account_deleted_message.format(id=id))
         else:
-            return await ResponseUtils.error(*DataUtils.responses.bank_account_not_exists_error)
+            return await ResponseUtils.error(*DataUtils.responses.bank_account_not_found_error)

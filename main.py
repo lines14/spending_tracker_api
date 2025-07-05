@@ -9,18 +9,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from middlewares import AuthMiddleware, LogErrorsMiddleware
 from scheduler.currency_rates_updater import CurrencyRatesUpdater
 from DTO import UserDTO, ResponseContentDTO, PurchaseDTO, BankAccountDTO
-from handlers import (AuthHandler, TemplateHandler, GreetingsHandler, 
-                      RegistrationHandler, PurchaseHandler, BankAccountHandler)
+from controllers import (AuthController, TemplateController, GreetingsController, 
+                      UserController, PurchaseController, BankAccountController)
 
 load_dotenv()
 
-auth_handler = AuthHandler()
-template_handler = TemplateHandler()
-purchase_handler = PurchaseHandler()
-greetings_handler = GreetingsHandler()
-bank_account_handler = BankAccountHandler()
-registration_handler = RegistrationHandler()
+auth_controller = AuthController()
+template_controller = TemplateController()
+purchase_controller = PurchaseController()
+greetings_controller = GreetingsController()
 currency_rates_updater = CurrencyRatesUpdater()
+bank_account_controller = BankAccountController()
+user_controller = UserController()
 
 async def start_scheduler():
     aioschedule.every().hour.at(":10").do(currency_rates_updater.update)
@@ -54,32 +54,36 @@ app.add_middleware(LogErrorsMiddleware)
 
 @app.get("/", response_class=HTMLResponse)
 async def template(request: Request) -> Response:
-    return await template_handler.template(request)
+    return await template_controller.get_template(request)
 
 @app.post('/registration', response_model=ResponseContentDTO)
-async def registration(user: UserDTO) -> Response:
-    return await registration_handler.registration(user)
+async def create_user(user: UserDTO) -> Response:
+    return await user_controller.create_user(user)
+
+@app.delete('/user/{id}', response_model=ResponseContentDTO)
+async def delete_user(request: Request, id: int) -> Response:
+    return await user_controller.delete_user(id)
 
 @app.post('/auth', response_model=ResponseContentDTO)
 async def auth(request: Request, user: UserDTO) -> Response:
-    return await auth_handler.auth(request, user)
+    return await auth_controller.auth(request, user)
 
 @app.get('/greetings', response_model=ResponseContentDTO)
 async def greetings(request: Request) -> Response:
-    return await greetings_handler.greetings()
+    return await greetings_controller.greetings()
 
 @app.post('/purchase', response_model=ResponseContentDTO)
 async def create_purchase(request: Request, purchase: PurchaseDTO) -> Response:
-    return await purchase_handler.create_purchase(purchase)
+    return await purchase_controller.create_purchase(purchase)
 
 @app.post('/bank_account', response_model=ResponseContentDTO)
 async def create_bank_account(request: Request, bank_account: BankAccountDTO) -> Response:
-    return await bank_account_handler.create_bank_account(bank_account)
+    return await bank_account_controller.create_bank_account(bank_account)
 
 @app.get('/bank_account/{id}', response_model=BankAccountDTO)
 async def get_bank_account(request: Request, id: int) -> Response:
-    return await bank_account_handler.get_bank_account(id)
+    return await bank_account_controller.get_bank_account(id)
 
 @app.delete('/bank_account/{id}', response_model=ResponseContentDTO)
 async def delete_bank_account(request: Request, id: int) -> Response:
-    return await bank_account_handler.delete_bank_account(id)
+    return await bank_account_controller.delete_bank_account(id)
