@@ -27,9 +27,14 @@ RUN echo "alias migrate:fresh='alembic downgrade base && alembic upgrade head'" 
 RUN echo "alias seed='python database/config/seed.py'" >> ~/.bashrc
 RUN echo "alias migration='python database/config/create_migration.py'" >> ~/.bashrc
 RUN echo "alias seeder='python database/config/create_seeder.py'" >> ~/.bashrc
+
 RUN echo 'alias currencies:update="python -c \"import asyncio; \
 from scheduler.currency_rates_updater import CurrencyRatesUpdater; \
-asyncio.run(CurrencyRatesUpdater().update())\""' >> ~/.bashrc
+asyncio.run(CurrencyRatesUpdater().update_currency_rates())\""' >> ~/.bashrc
+
+RUN echo 'alias sessions:delete="python -c \"import asyncio; \
+from scheduler.sessions_killer import SessionsKiller; \
+asyncio.run(SessionsKiller().delete_expired_sessions())\""' >> ~/.bashrc
 
 RUN /bin/sh -c "source ../home/myuser/.bashrc"
 

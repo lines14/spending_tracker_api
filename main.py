@@ -6,8 +6,8 @@ from contextlib import asynccontextmanager
 from fastapi.responses import HTMLResponse
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from scheduler import CurrencyRatesUpdater, SessionsKiller
 from middlewares import AuthMiddleware, LogErrorsMiddleware
-from scheduler.currency_rates_updater import CurrencyRatesUpdater
 from DTO import UserDTO, ResponseContentDTO, PurchaseDTO, BankAccountDTO
 from controllers import (AuthController, TemplateController, GreetingsController, 
                       UserController, PurchaseController, BankAccountController)
@@ -15,15 +15,17 @@ from controllers import (AuthController, TemplateController, GreetingsController
 load_dotenv()
 
 auth_controller = AuthController()
+sessions_killer = SessionsKiller()
+user_controller = UserController()
 template_controller = TemplateController()
 purchase_controller = PurchaseController()
 greetings_controller = GreetingsController()
 currency_rates_updater = CurrencyRatesUpdater()
 bank_account_controller = BankAccountController()
-user_controller = UserController()
 
 async def start_scheduler():
-    aioschedule.every().hour.at(":10").do(currency_rates_updater.update)
+    aioschedule.every().hour.at(":05").do(sessions_killer.delete_expired_sessions)
+    aioschedule.every().hour.at(":10").do(currency_rates_updater.update_currency_rates)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)

@@ -12,7 +12,7 @@ from services.currencies_service import CurrenciesService
 load_dotenv()
 
 class CurrencyRatesUpdater(BaseSeeder):
-    async def update(self) -> None:
+    async def update_currency_rates(self) -> None:
         response = await CurrenciesService().get_rates()
         root = ET.fromstring(response.text)
         currency_rates = []

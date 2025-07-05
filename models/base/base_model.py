@@ -48,6 +48,9 @@ class BaseModel(SQLModel):
         
     async def get_all(self, with_soft_deleted: bool = False):
         return await Database().get_all(self, with_soft_deleted)
+    
+    async def delete_all(self, with_soft_deleted: bool = False, soft_delete: bool = True):
+        await Database().delete_all(self, with_soft_deleted, soft_delete)
 
     @classmethod
     def validate(cls: Type[BaseModel], fields: List[str]):
