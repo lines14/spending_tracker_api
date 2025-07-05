@@ -23,15 +23,14 @@ class JWTUtils:
         )
 
     @classmethod
-    def verify_token(cls, token: str) -> dict:
+    def decode_token(cls, token: str) -> dict:
         try:
             return jwt.decode(
                 token, 
                 cls.__parse_public_key(StorageUtils.public_key), 
-                algorithms=[getenv('ENCODE_ALGORITHM')]
+                algorithms=[getenv('ENCODE_ALGORITHM')],
+                options={"verify_exp": False}
             )
-        except jwt.ExpiredSignatureError as e:
-            raise jwt.ExpiredSignatureError(json.dumps(DataUtils.responses.expired_token_error))
         except jwt.InvalidTokenError as e:
             raise jwt.InvalidTokenError(json.dumps(DataUtils.responses.invalid_token_error))
     
