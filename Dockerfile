@@ -29,12 +29,12 @@ RUN echo "alias migration='python database/config/create_migration.py'" >> ~/.ba
 RUN echo "alias seeder='python database/config/create_seeder.py'" >> ~/.bashrc
 
 RUN echo 'alias currencies:update="python -c \"import asyncio; \
-from scheduler.currency_rates_updater import CurrencyRatesUpdater; \
-asyncio.run(CurrencyRatesUpdater().update_currency_rates())\""' >> ~/.bashrc
+from scheduler.currency_rates_updater_schedule import CurrencyRatesUpdaterSchedule; \
+asyncio.run(CurrencyRatesUpdaterSchedule().update_currency_rates())\""' >> ~/.bashrc
 
 RUN echo 'alias sessions:delete="python -c \"import asyncio; \
-from scheduler.sessions_killer import SessionsKiller; \
-asyncio.run(SessionsKiller().delete_expired_sessions())\""' >> ~/.bashrc
+from scheduler.sessions_cleaner_schedule import SessionsCleanerSchedule; \
+asyncio.run(SessionsCleanerSchedule().delete_expired_sessions())\""' >> ~/.bashrc
 
 RUN /bin/sh -c "source ../home/myuser/.bashrc"
 

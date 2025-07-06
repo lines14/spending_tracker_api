@@ -1,2 +1,2 @@
-from .sessions_killer import SessionsKiller
-from .currency_rates_updater import CurrencyRatesUpdater
+from .sessions_cleaner_schedule import SessionsCleanerSchedule
+from .currency_rates_updater_schedule import CurrencyRatesUpdaterSchedule

@@ -1,32 +1,16 @@
 from DTO import BankAccountDTO
-from models import BankAccount
 from fastapi import Request, Response
-from utils import DataUtils, ResponseUtils
+from services import BankAccountService
 
 class BankAccountController:
-    async def create_bank_account(self, bank_account: BankAccountDTO) -> Response:
-        new_bank_account = BankAccount(**vars(bank_account))
-        await new_bank_account.create()
+    async def create_bank_account(bank_account: BankAccountDTO) -> Response:
+        bank_account_service = BankAccountService()
+        return await bank_account_service.create_bank_account(bank_account)
 
-        return await ResponseUtils.success(DataUtils.responses.bank_account_created_message)
-        
-    async def get_bank_account(self, request: Request, id: int) -> Response:
-        existing_bank_account = await BankAccount(id=id).get()
+    async def get_bank_account(request: Request, id: int) -> Response:
+        bank_account_service = BankAccountService()
+        return await bank_account_service.get_bank_account(request, id)
 
-        if existing_bank_account:
-            return await ResponseUtils.success(
-                DataUtils.responses.bank_account_received_message, 
-                vars(BankAccountDTO(**vars(existing_bank_account)))
-            )
-        else:
-            return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
-
-    async def delete_bank_account(self, request: Request, id: int) -> Response:
-        existing_bank_account = await BankAccount(id=id).get()
-
-        if existing_bank_account:
-            await BankAccount(id=existing_bank_account.id).delete()
-            
-            return await ResponseUtils.success(DataUtils.responses.bank_account_deleted_message.format(id=id))
-        else:
-            return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
+    async def delete_bank_account(request: Request, id: int) -> Response:
+        bank_account_service = BankAccountService()
+        return await bank_account_service.delete_bank_account(request, id)

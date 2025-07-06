@@ -1,31 +1,24 @@
 import asyncio
 import aioschedule
+from routes import *
 from os import getenv
+from scheduler import *
+from middlewares import *
+from fastapi import FastAPI
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
-from fastapi.responses import HTMLResponse
-from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from scheduler import CurrencyRatesUpdater, SessionsKiller
-from middlewares import AuthMiddleware, LogErrorsMiddleware
-from DTO import UserDTO, ResponseContentDTO, PurchaseDTO, BankAccountDTO
-from controllers import (AuthController, TemplateController, GreetingsController, 
-                      UserController, PurchaseController, BankAccountController)
 
 load_dotenv()
 
-auth_controller = AuthController()
-sessions_killer = SessionsKiller()
-user_controller = UserController()
-template_controller = TemplateController()
-purchase_controller = PurchaseController()
-greetings_controller = GreetingsController()
-currency_rates_updater = CurrencyRatesUpdater()
-bank_account_controller = BankAccountController()
+sessions_cleaner_schedule = SessionsCleanerSchedule()
+currency_rates_updater_schedule = CurrencyRatesUpdaterSchedule()
 
 async def start_scheduler():
-    aioschedule.every().hour.at(":05").do(sessions_killer.delete_expired_sessions)
-    aioschedule.every().hour.at(":10").do(currency_rates_updater.update_currency_rates)
+    (aioschedule.every().hour.at(":05")
+     .do(sessions_cleaner_schedule.delete_expired_sessions))
+    (aioschedule.every().hour.at(":10")
+     .do(currency_rates_updater_schedule.update_currency_rates))
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
@@ -53,39 +46,6 @@ app.add_middleware(
 
 app.add_middleware(AuthMiddleware)
 app.add_middleware(LogErrorsMiddleware)
-
-@app.get("/", response_class=HTMLResponse)
-async def template(request: Request) -> Response:
-    return await template_controller.get_template(request)
-
-@app.post('/registration', response_model=ResponseContentDTO)
-async def create_user(request: Request, user: UserDTO) -> Response:
-    return await user_controller.create_user(request, user)
-
-@app.delete('/user/{id}', response_model=ResponseContentDTO)
-async def delete_user(request: Request, id: int) -> Response:
-    return await user_controller.delete_user(request, id)
-
-@app.post('/auth', response_model=ResponseContentDTO)
-async def auth(request: Request, user: UserDTO) -> Response:
-    return await auth_controller.auth(request, user)
-
-@app.get('/greetings', response_model=ResponseContentDTO)
-async def greetings() -> Response:
-    return await greetings_controller.greetings()
-
-@app.post('/purchase', response_model=ResponseContentDTO)
-async def create_purchase(request: Request, purchase: PurchaseDTO) -> Response:
-    return await purchase_controller.create_purchase(request, purchase)
-
-@app.post('/bank_account', response_model=ResponseContentDTO)
-async def create_bank_account(bank_account: BankAccountDTO) -> Response:
-    return await bank_account_controller.create_bank_account(bank_account)
-
-@app.get('/bank_account/{id}', response_model=BankAccountDTO)
-async def get_bank_account(request: Request, id: int) -> Response:
-    return await bank_account_controller.get_bank_account(request, id)
-
-@app.delete('/bank_account/{id}', response_model=ResponseContentDTO)
-async def delete_bank_account(request: Request, id: int) -> Response:
-    return await bank_account_controller.delete_bank_account(request, id)
+app.include_router(router)
+app.include_router(purchase_router)
+app.include_router(bank_account_router)

@@ -7,13 +7,13 @@ from DTO import CurrencyRateResponseDTO
 from models import Currency, CurrencyRate
 from database.base.database import Database
 from database.seeders.base.base_seeder import BaseSeeder
-from services.currencies_service import CurrenciesService
+from repositories.currencies_repository import CurrenciesRepository
 
 load_dotenv()
 
-class CurrencyRatesUpdater(BaseSeeder):
+class CurrencyRatesUpdaterSchedule(BaseSeeder):
     async def update_currency_rates(self) -> None:
-        response = await CurrenciesService().get_rates()
+        response = await CurrenciesRepository().get_rates()
         root = ET.fromstring(response.text)
         currency_rates = []
 

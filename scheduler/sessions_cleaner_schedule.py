@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class SessionsKiller():
+class SessionsCleanerSchedule:
     async def delete_expired_sessions(self) -> None:
         await Session().delete_all()
         print(f'INFO:     Successfully deleted expired sessions')

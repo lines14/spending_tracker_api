@@ -1,9 +1,9 @@
 from os import getenv
 from datetime import datetime
 from DTO import CurrencyRateRequestDTO
-from services.base.HTTP_client import HTTPClient
+from repositories.base.HTTP_client import HTTPClient
 
-class CurrenciesService(HTTPClient):
+class CurrenciesRepository(HTTPClient):
     def __init__(self):
         super().__init__(
             base_URL=getenv('CURRENCY_RATES_URL')
