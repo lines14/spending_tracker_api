@@ -11,14 +11,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
-sessions_cleaner_schedule = SessionsCleanerSchedule()
-currency_rates_updater_schedule = CurrencyRatesUpdaterSchedule()
-
 async def start_scheduler():
     (aioschedule.every().hour.at(":05")
-     .do(sessions_cleaner_schedule.delete_expired_sessions))
+     .do(SessionsCleanerSchedule().delete_expired_sessions))
     (aioschedule.every().hour.at(":10")
-     .do(currency_rates_updater_schedule.update_currency_rates))
+     .do(CurrencyRatesUpdaterSchedule().update_currency_rates))
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
@@ -47,5 +44,6 @@ app.add_middleware(
 app.add_middleware(AuthMiddleware)
 app.add_middleware(LogErrorsMiddleware)
 app.include_router(router)
+app.include_router(user_router)
 app.include_router(purchase_router)
 app.include_router(bank_account_router)

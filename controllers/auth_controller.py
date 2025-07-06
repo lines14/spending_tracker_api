@@ -4,5 +4,4 @@ from fastapi import Request, Response
 
 class AuthController:
     async def auth(request: Request, user: UserDTO) -> Response:
-        auth_service = AuthService()
-        return await auth_service.auth(request, user)
+        return await AuthService().auth(request, user)

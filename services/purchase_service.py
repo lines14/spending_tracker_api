@@ -8,8 +8,7 @@ class PurchaseService:
         existing_bank_account = await BankAccount(id=purchase.account_id).get()
 
         if existing_bank_account:
-            new_purchase = Purchase(**vars(purchase))
-            await new_purchase.create()
+            await Purchase(**vars(purchase)).create()
             
             return await ResponseUtils.success(DataUtils.responses.purchase_created_message)
         else:

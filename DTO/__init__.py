@@ -5,6 +5,7 @@ from .receive_DTO import ReceiveDTO
 from .response_DTO import ResponseDTO
 from .purchase_DTO import PurchaseDTO
 from .error_info_DTO import ErrorInfoDTO
+from .saved_user_DTO import SavedUserDTO
 from .bank_account_DTO import BankAccountDTO
 from .stack_element_DTO import StackElementDTO
 from .response_content_DTO import ResponseContentDTO

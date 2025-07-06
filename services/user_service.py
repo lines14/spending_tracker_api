@@ -1,5 +1,5 @@
-from DTO import UserDTO
 from models import User
+from DTO import UserDTO, SavedUserDTO
 from fastapi import Response, Request
 from utils import DataUtils, ResponseUtils, CryptographyUtils
 
@@ -17,6 +17,17 @@ class UserService:
             return await ResponseUtils.success(DataUtils.responses.user_created_message)
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.user_exists_error)
+        
+    async def get_user(self, request: Request, id: int) -> Response:
+        existing_user = await User(id=id).get()
+
+        if existing_user:
+            return await ResponseUtils.success(
+                DataUtils.responses.user_received_message,
+                vars(SavedUserDTO(**vars(existing_user)))
+            )
+        else:
+            return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
         
     async def delete_user(self, request: Request, id: int) -> Response:
         existing_user = await User(id=id).get()

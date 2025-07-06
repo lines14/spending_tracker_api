@@ -4,9 +4,10 @@ from fastapi import Request, Response
 
 class UserController:
     async def create_user(request: Request, user: UserDTO) -> Response:
-        user_service = UserService()
-        return await user_service.create_user(request, user)
+        return await UserService().create_user(request, user)
+    
+    async def get_user(request: Request, id: int) -> Response:
+        return await UserService().get_user(request, id)
 
     async def delete_user(request: Request, id: int) -> Response:
-        user_service = UserService()
-        return await user_service.delete_user(request, id)
+        return await UserService().delete_user(request, id)

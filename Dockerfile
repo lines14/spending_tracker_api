@@ -21,8 +21,8 @@ RUN chmod -R 777 /app
 
 USER myuser
 
-RUN echo "alias migrate='alembic upgrade head'" >> ~/.bashrc
-RUN echo "alias downgrade='alembic downgrade base'" >> ~/.bashrc
+RUN echo "migrate() { if [ -n \"\$1\" ]; then alembic upgrade +\$1; else alembic upgrade head; fi; }" >> ~/.bashrc
+RUN echo "downgrade() { if [ -n \"\$1\" ]; then alembic downgrade -\$1; else alembic downgrade base; fi; }" >> ~/.bashrc
 RUN echo "alias migrate:fresh='alembic downgrade base && alembic upgrade head'" >> ~/.bashrc
 RUN echo "alias seed='python database/config/seed.py'" >> ~/.bashrc
 RUN echo "alias migration='python database/config/create_migration.py'" >> ~/.bashrc

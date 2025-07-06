@@ -12,6 +12,7 @@
     "info_message": "Hello, this response was created in FastAPI",
     "authorized_message": "Successfully authorized in Spending tracker",
     "user_created_message": "Successfully registered in Spending tracker",
+    "user_received_message": "User was successfully received",
     "user_deleted_message": "Successfully deleted user {id}",
     "purchase_created_message": "Successfully created purchase",
     "bank_account_created_message": "Successfully created bank account",

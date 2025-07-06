@@ -5,8 +5,7 @@ from utils import DataUtils, ResponseUtils
 
 class BankAccountService:
     async def create_bank_account(self, bank_account: BankAccountDTO) -> Response:
-        new_bank_account = BankAccount(**vars(bank_account))
-        await new_bank_account.create()
+        await BankAccount(**vars(bank_account)).create()
 
         return await ResponseUtils.success(DataUtils.responses.bank_account_created_message)
         

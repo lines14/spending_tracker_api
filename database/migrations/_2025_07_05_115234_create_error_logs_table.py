@@ -25,7 +25,7 @@ def upgrade() -> None:
     sa.Column('line', sa.Integer(), nullable=True),
     sa.Column('snippet', sa.String(length=255), nullable=True),
     sa.Column('stack', sa.Text(), nullable=True),
-    sa.Column('message', sa.String(length=255), nullable=False),
+    sa.Column('message', sa.Text(), nullable=False),
     sa.Column('code', sa.Integer(), nullable=True),
     sa.Column('body', sa.String(length=255), nullable=True),
     sa.Column('url', sa.String(length=255), nullable=True),
@@ -34,10 +34,7 @@ def upgrade() -> None:
     sa.Column('deleted_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
-    
-    op.create_index(op.f('ix_error_logs_message'), 'error_logs', ['message'], unique=False)
 
 
 def downgrade() -> None:
-    op.drop_index(op.f('ix_error_logs_message'), table_name='error_logs')
     op.drop_table('error_logs')
