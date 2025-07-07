@@ -30,6 +30,7 @@ if config.config_file_name is not None:
 from models import *
 from utils.logger import Logger
 from database.base.database import Database
+
 target_metadata = Database.metadata
 
 # other values from the config, defined by the needs of env.py,

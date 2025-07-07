@@ -27,7 +27,6 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         except Exception as e:
             stack = []
-
             exc_type, exc_value, exc_tb = sys.exc_info()
             stack_summary = traceback.extract_tb(exc_tb)
 

@@ -13,9 +13,9 @@ load_dotenv()
 
 class CurrencyRatesUpdaterSchedule(BaseSeeder):
     async def update_currency_rates(self) -> None:
+        currency_rates = []
         response = await CurrenciesRepository().get_rates()
         root = ET.fromstring(response.text)
-        currency_rates = []
 
         for item in root.findall('item'):
             currency_rate = CurrencyRateResponseDTO(

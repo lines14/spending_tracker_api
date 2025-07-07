@@ -11,6 +11,7 @@ else:
     file_name = name.replace(' ', '_')
     class_name = ''.join([word.capitalize() for word in name.split()])
     version = datetime.now().strftime("_%Y_%m_%d_%H%M%S")
+    
     print(f'  Generating /app/database/seeders/{version}_{file_name}.py ...  done')
 
     content = f"""import asyncio
