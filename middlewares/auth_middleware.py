@@ -1,9 +1,8 @@
 from DTO import JWTDTO
 from config import Config
-from models import User, Session
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-from repositories.redis_repository import RedisRepository
+from repositories.session_repository import SessionRepository
 from utils import JWTUtils, DataUtils, ResponseUtils, CryptographyUtils
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -21,25 +20,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
             
             try:
                 request_token = auth_header.split(" ")[1]
-                payload = JWTDTO(**JWTUtils.decode_token(request_token))
-                user = await User(login=payload.login).get()
-
-                if not user:
-                    return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
-                
-                session = await Session(user_id=user.id).get()
-                saved_token = await RedisRepository().get_user(str(user.id))
+                payload = JWTDTO(**JWTUtils.verify_token(request_token))
+                session = await SessionRepository().get_session(payload.id)
 
                 if not session:
                     return await ResponseUtils.error(request, *DataUtils.responses.session_expired_error)
-                
-                if not saved_token:
-                    await Session(id=session.id).delete()
-
-                    return await ResponseUtils.error(request, *DataUtils.responses.token_expired_error)    
                    
-                if not (CryptographyUtils.verify_string(request_token, session.token) 
-                    and request_token == saved_token.decode('utf-8')):
+                if not CryptographyUtils.verify_string(request_token, session.token):
                     return await ResponseUtils.error(request, *DataUtils.responses.unauthenticated_error)  
             except Exception as e:
                 raise e

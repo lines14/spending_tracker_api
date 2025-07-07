@@ -27,6 +27,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         except Exception as e:
             stack = []
+
             exc_type, exc_value, exc_tb = sys.exc_info()
             stack_summary = traceback.extract_tb(exc_tb)
 
@@ -36,9 +37,11 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
                     line=frame.lineno, 
                     snippet=frame.line
                 )
+
                 stack.append(vars(stack_element))
 
             stack.reverse()
+
             error_info = ErrorInfoDTO(
                 message=str(exc_value), 
                 stack=stack
@@ -48,6 +51,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
             Logger.log(json.dumps(vars(error_info), indent=2))
 
             formatted_stack = "[\n" + ",\n".join(json.dumps(stack_element) for stack_element in stack) + "\n]"
+            
             error_log = ErrorLog(
                 file=DataUtils.dict_to_model(stack[0]).file,
                 line=DataUtils.dict_to_model(stack[0]).line,
@@ -55,6 +59,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
                 stack=formatted_stack,
                 message=str(exc_value)
             )
+
             await error_log.create()
 
             try:

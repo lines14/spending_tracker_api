@@ -57,6 +57,7 @@ class BaseModel(SQLModel):
         async def validate_fields(request: Request) -> BaseModel:
             errors = []
             validated_data = {}
+            
             data = await request.json()
 
             for field in fields:
@@ -85,7 +86,9 @@ class BaseModel(SQLModel):
             return cls(**validated_data)
         
         return validate_fields
-
+    
+    def to_dict(self) -> dict:
+        return self.model_dump()
     class Config:
         from_attributes = True
         validate_assignment = True

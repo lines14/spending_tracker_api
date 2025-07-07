@@ -11,9 +11,9 @@ from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
 
 class JWTUtils:
     @staticmethod
-    def generate_token(login: str) -> str:
+    def generate_token(id: str) -> str:
         payload = JWTDTO(
-            login=login, 
+            id=id, 
             exp=datetime.utcnow() + timedelta(seconds=int(getenv('TOKEN_TTL')))
         )
 
@@ -24,7 +24,7 @@ class JWTUtils:
         )
 
     @classmethod
-    def decode_token(cls, token: str) -> dict:
+    def verify_token(cls, token: str) -> dict:
         try:
             return jwt.decode(
                 token, 
@@ -32,6 +32,8 @@ class JWTUtils:
                 algorithms=[getenv('ENCODE_ALGORITHM')],
                 options={"verify_exp": False}
             )
+        except jwt.ExpiredSignatureError as e:
+            raise jwt.ExpiredSignatureError(json.dumps(DataUtils.responses.token_expired_error))
         except jwt.InvalidTokenError as e:
             raise jwt.InvalidTokenError(json.dumps(DataUtils.responses.invalid_token_error))
     

@@ -1,6 +1,5 @@
 from DTO.base import BaseDTO
 
-class RedisDTO(BaseDTO):
+class RedisSetRequestDTO(BaseDTO):
     name: str
-    time: str
     value: str

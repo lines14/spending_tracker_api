@@ -1,4 +1,5 @@
 import os
+import asyncio
 import traceback
 from typing import Dict
 from config import Config
@@ -7,6 +8,7 @@ from logging.config import fileConfig
 from sqlalchemy.engine import reflection
 from sqlalchemy import engine_from_config, pool, text
 from alembic.runtime.migration import MigrationContext
+from repositories.base.redis_client import RedisClient
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -115,6 +117,12 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+async def clear_cache():
+    redis_client = RedisClient()
+    await redis_client.clear_cache()
+    await redis_client.close()
+    await redis_client.disconnect()
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
@@ -133,6 +141,8 @@ def run_migrations_online() -> None:
             connection=connection, 
             target_metadata=target_metadata
         )
+
+        asyncio.run(clear_cache())
 
         with context.begin_transaction():
             context.run_migrations()

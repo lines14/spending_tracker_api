@@ -60,6 +60,7 @@ class ResponseUtils:
                 method_type=request.method,
                 message=msg
             )
+            
             await error_log.create()
 
         return Response(**vars(response))

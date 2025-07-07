@@ -32,10 +32,6 @@ RUN echo 'alias currencies:update="python -c \"import asyncio; \
 from scheduler.currency_rates_updater_schedule import CurrencyRatesUpdaterSchedule; \
 asyncio.run(CurrencyRatesUpdaterSchedule().update_currency_rates())\""' >> ~/.bashrc
 
-RUN echo 'alias sessions:delete="python -c \"import asyncio; \
-from scheduler.sessions_cleaner_schedule import SessionsCleanerSchedule; \
-asyncio.run(SessionsCleanerSchedule().delete_expired_sessions())\""' >> ~/.bashrc
-
 RUN /bin/sh -c "source ../home/myuser/.bashrc"
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

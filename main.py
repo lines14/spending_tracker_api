@@ -11,11 +11,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
-async def start_scheduler():
-    (aioschedule.every().hour.at(":05")
-     .do(SessionsCleanerSchedule().delete_expired_sessions))
+async def start_scheduler():    
     (aioschedule.every().hour.at(":10")
      .do(CurrencyRatesUpdaterSchedule().update_currency_rates))
+    
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)

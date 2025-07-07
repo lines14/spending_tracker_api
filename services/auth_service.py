@@ -1,24 +1,23 @@
-from DTO import UserDTO
-from models import User, Session
+from DTO import CredentialsDTO
 from fastapi import Request, Response
-from repositories.redis_repository import RedisRepository
+from repositories.user_repository import UserRepository
+from repositories.session_repository import SessionRepository
 from utils import JWTUtils, DataUtils, ResponseUtils, CryptographyUtils
 
 class AuthService:
-    async def auth(self, request: Request, user: UserDTO) -> Response:
-        existing_user = await User(login=user.login).get()
+    async def auth(self, request: Request, credentials: CredentialsDTO) -> Response:
+        user_repository = UserRepository()
+        existing_id = await user_repository.get_user_id_by_login(credentials.login)
 
-        if existing_user and CryptographyUtils.verify_string(user.password, existing_user.hashed_password):
-            token = JWTUtils.generate_token(user.login)
-            await RedisRepository().set_user(str(existing_user.id), token)
+        if not existing_id:
+            return await ResponseUtils.error(request, *DataUtils.responses.invalid_credentials_error)
+        
+        existing_user = await user_repository.get_user(existing_id)
 
-            session = Session(
-                user_id=existing_user.id, 
-                token=CryptographyUtils.hash_string(token),
-                host=request.headers.get('host'),
-                user_agent=request.headers.get('user-agent')
-            )
-            await session.create()
+        if existing_user and CryptographyUtils.verify_string(credentials.password, existing_user.hashed_password):
+            token = JWTUtils.generate_token(existing_id)
+
+            await SessionRepository().create_session(existing_id, token, request.headers)
             
             return await ResponseUtils.success(DataUtils.responses.authorized_message, token)
         else:
