@@ -1,7 +1,7 @@
 from controllers import *
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
-from DTO import ResponseContentDTO, BankAccountDTO
+from DTO import ResponseContentDTO, BankAccountDTO, PurchaseDTO
 
 router = APIRouter()
 router.get("/", response_class=HTMLResponse)(TemplateController.get_template)
@@ -16,6 +16,8 @@ user_router.delete('/{id}', response_model=ResponseContentDTO)(UserController.de
 
 purchase_router = APIRouter(prefix="/purchase", tags=["Purchase"])
 purchase_router.post('', response_model=ResponseContentDTO)(PurchaseController.create_purchase)
+purchase_router.get('/{id}', response_model=PurchaseDTO)(PurchaseController.get_purchase)
+purchase_router.delete('/{id}', response_model=ResponseContentDTO)(PurchaseController.delete_purchase)
 
 bank_account_router = APIRouter(prefix="/bank_account", tags=["Bank account"])
 bank_account_router.post('', response_model=ResponseContentDTO)(BankAccountController.create_bank_account)

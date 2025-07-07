@@ -7,6 +7,7 @@
     "invalid_token_error": ["Invalid token", "", 401],
     "invalid_credentials_error": ["Invalid credentials", "", 401],
     "user_exists_error": ["User already exists", "", 409],
+    "purchase_not_found_error": ["Purchase not found", "", 404],
     "bank_account_not_found_error": ["Bank account not found", "", 404],
 
     "info_message": "Hello, this response was created in FastAPI",
@@ -15,6 +16,8 @@
     "user_received_message": "User was successfully received",
     "user_deleted_message": "Successfully deleted user {id}",
     "purchase_created_message": "Successfully created purchase",
+    "purchase_deleted_message": "Successfully deleted purchase {id}",
+    "purchase_received_message": "Purchase was successfully received",
     "bank_account_created_message": "Successfully created bank account",
     "bank_account_deleted_message": "Successfully deleted bank account {id}",
     "bank_account_received_message": "Bank account was successfully received",
