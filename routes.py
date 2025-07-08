@@ -5,12 +5,11 @@ from DTO import ResponseContentDTO, BankAccountDTO, PurchaseDTO
 
 router = APIRouter()
 router.get("/", response_class=HTMLResponse)(TemplateController.get_template)
+router.post('/auth', response_model=ResponseContentDTO)(AuthController.auth)
 router.get('/greetings', response_model=ResponseContentDTO)(GreetingsController.greetings)
 
-router.post('/registration', response_model=ResponseContentDTO)(UserController.create_user)
-router.post('/auth', response_model=ResponseContentDTO)(AuthController.auth)
-
 user_router = APIRouter(prefix="/user", tags=["User"])
+router.post('/registration', response_model=ResponseContentDTO)(UserController.create_user)
 user_router.get('/{id}', response_model=ResponseContentDTO)(UserController.get_user)
 user_router.delete('/{id}', response_model=ResponseContentDTO)(UserController.delete_user)
 

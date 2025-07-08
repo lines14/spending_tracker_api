@@ -3,8 +3,8 @@ from models import User
 from typing import Optional
 from utils import CryptographyUtils
 from repositories.base.redis_client import RedisClient
-from DTO import RedisSetRequestDTO, CredentialsDTO, UserDTO
 from repositories.session_repository import SessionRepository
+from DTO import RedisSetRequestDTO, CredentialsDTO, UserDTO, UserWithRelationsDTO
 
 class UserRepository:    
     async def create_user(self, credentials: CredentialsDTO) -> None:
@@ -40,7 +40,7 @@ class UserRepository:
         await redis_client.delete(name)
 
         await User(id=id).delete()
-
+    
     async def get_user(self, id: int) -> Optional[UserDTO]:
         redis_client = RedisClient()
         name = redis_client.create_key('user', id)
@@ -83,3 +83,25 @@ class UserRepository:
             await redis_client.set(**vars(data))
 
         return int(user_id)
+    
+    async def get_user_with_relations(self, id: int) -> Optional[UserWithRelationsDTO]:
+        redis_client = RedisClient()
+        name = redis_client.create_key('user_with_relations', id)
+        stringified_user = await redis_client.get(name)
+
+        if not stringified_user:
+            user = await User(id=id).joined_load(["bank_accounts", "bank_accounts.purchases"])
+
+            if not user:
+                return None
+
+            stringified_user = json.dumps(User.nested_models_to_dict(user), default=str)
+
+            data = RedisSetRequestDTO(
+                name=name, 
+                value=stringified_user
+            )
+
+            await redis_client.set(**vars(data))
+
+        return UserWithRelationsDTO(**json.loads(stringified_user))

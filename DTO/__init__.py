@@ -11,6 +11,7 @@ from .stack_element_DTO import StackElementDTO
 from .response_content_DTO import ResponseContentDTO
 from .redis_set_request_DTO import RedisSetRequestDTO
 from .response_template_DTO import ResponseTemplateDTO
+from .user_with_relations_DTO import UserWithRelationsDTO
 from .redis_setex_request_DTO import RedisSetexRequestDTO
 from .currency_rate_request_DTO import CurrencyRateRequestDTO
 from .currency_rate_response_DTO import CurrencyRateResponseDTO

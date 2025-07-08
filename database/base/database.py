@@ -1,7 +1,8 @@
+from utils import DataUtils
 from config import Config
 from datetime import datetime
-from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import inspect, desc, select
+from sqlalchemy.orm import DeclarativeBase, joinedload
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 class Database(DeclarativeBase):
@@ -31,11 +32,21 @@ class Database(DeclarativeBase):
 
         await self.engine.dispose()
 
-    async def seed(self, instances):
-        async with self as db:
-            for index, instance in enumerate(instances):
-                instance.id = index + 1
-                await db.create_or_update(instance)
+    @staticmethod
+    def build_nested_joinedload(model, key: str):
+        parts = key.split(".")
+
+        try:
+            loader = joinedload(getattr(model, parts[0]))
+            current_model = model.__mapper__.relationships[parts[0]].mapper.class_
+
+            for part in parts[1:]:
+                loader = loader.joinedload(getattr(current_model, part))
+                current_model = current_model.__mapper__.relationships[part].mapper.class_
+
+            return loader
+        except (AttributeError, KeyError) as e:
+            raise ValueError(DataUtils.responses.invalid_relationship_path_error_message.format(key=key))
 
     async def get_not_empty_properties(self, instance):
         instance_properties = {attr.key: getattr(instance, attr.key) for attr in inspect(instance).mapper.column_attrs}
@@ -65,6 +76,12 @@ class Database(DeclarativeBase):
 
             await self.session.commit()
 
+    async def seed(self, instances):
+        async with self as db:
+            for index, instance in enumerate(instances):
+                instance.id = index + 1
+                await db.create_or_update(instance)
+                
     async def delete(self, instance, soft_delete: bool):
         async with self as db:
             instance_properties = await self.get_not_empty_properties(instance)
@@ -137,3 +154,14 @@ class Database(DeclarativeBase):
                             await db.session.delete(existing_record)
 
                 await db.session.commit()
+
+    async def joined_load(self, instance, keys: list[str], with_soft_deleted: bool):
+        async with self as db:
+            options = [self.build_nested_joinedload(type(instance), key) for key in keys]
+            query = select(type(instance)).options(*options)
+
+            if not with_soft_deleted:
+                query = query.filter(getattr(type(instance), "deleted_at") == None)
+
+            async with db.session.begin():
+                return (await db.session.execute(query)).unique().scalars().all()
