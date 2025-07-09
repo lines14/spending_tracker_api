@@ -26,6 +26,9 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
         try:
             return await call_next(request)
         except Exception as e:
+            if isinstance(e, (AttributeError, KeyError)):
+                e = ValueError(DataUtils.responses.invalid_relationship_path_error_message.format(key=e))
+                
             stack = []
             exc_type, exc_value, exc_tb = sys.exc_info()
             stack_summary = traceback.extract_tb(exc_tb)

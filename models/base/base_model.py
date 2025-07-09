@@ -53,7 +53,7 @@ class BaseModel(SQLModel):
 
         if not with_soft_deleted:
             return self.clean_soft_deleted_relations(result)
-        
+    
         return result
     
     async def delete_all(self, with_soft_deleted: bool = False, soft_delete: bool = True):

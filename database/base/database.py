@@ -1,4 +1,3 @@
-from utils import DataUtils
 from config import Config
 from datetime import datetime
 from sqlalchemy import inspect, desc, select
@@ -35,18 +34,14 @@ class Database(DeclarativeBase):
     @staticmethod
     def build_nested_joinedload(model, key: str):
         parts = key.split(".")
+        loader = joinedload(getattr(model, parts[0]))
+        current_model = model.__mapper__.relationships[parts[0]].mapper.class_
 
-        try:
-            loader = joinedload(getattr(model, parts[0]))
-            current_model = model.__mapper__.relationships[parts[0]].mapper.class_
+        for part in parts[1:]:
+            loader = loader.joinedload(getattr(current_model, part))
+            current_model = current_model.__mapper__.relationships[part].mapper.class_
 
-            for part in parts[1:]:
-                loader = loader.joinedload(getattr(current_model, part))
-                current_model = current_model.__mapper__.relationships[part].mapper.class_
-
-            return loader
-        except (AttributeError, KeyError) as e:
-            raise ValueError(DataUtils.responses.invalid_relationship_path_error_message.format(key=key))
+        return loader
 
     async def get_not_empty_properties(self, instance):
         instance_properties = {attr.key: getattr(instance, attr.key) for attr in inspect(instance).mapper.column_attrs}
