@@ -69,4 +69,4 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
                 
                 return await ResponseUtils.error(None, *error_response)
             except:
-                return await ResponseUtils.error(None, str(e))
+                return await ResponseUtils.error(None, str(e), stack)
