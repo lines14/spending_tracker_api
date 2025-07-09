@@ -5,7 +5,7 @@ from models import Purchase
 
 class PurchaseRepository:    
     async def create_purchase(self, purchase: PurchaseDTO) -> None:
-        await Purchase(**vars(purchase)).create()
+        await Purchase(**purchase.model_dump()).create()
 
     async def get_purchase(self, id: int) -> Optional[PurchaseDTO]:
         purchase = await Purchase(id=id).get()

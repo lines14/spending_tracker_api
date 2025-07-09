@@ -1,11 +1,11 @@
-from DTO import PurchaseDTO
 from fastapi import Response, Request
 from utils import DataUtils, ResponseUtils
+from DTO import PurchaseDTO, PurchaseCreateDTO
 from repositories.purchase_repository import PurchaseRepository
 from repositories.bank_account_repository import BankAccountRepository
 
 class PurchaseService:        
-    async def create_purchase(self, request: Request, purchase: PurchaseDTO) -> Response:
+    async def create_purchase(self, request: Request, purchase: PurchaseCreateDTO) -> Response:
         existing_bank_account = await BankAccountRepository().get_bank_account(purchase.account_id)
 
         if existing_bank_account:
@@ -21,7 +21,7 @@ class PurchaseService:
         if existing_purchase:
             return await ResponseUtils.success(
                 DataUtils.responses.purchase_received_message, 
-                vars(PurchaseDTO(**vars(existing_purchase)))
+                PurchaseDTO(**existing_purchase.model_dump()).model_dump()
             )
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.purchase_not_found_error)

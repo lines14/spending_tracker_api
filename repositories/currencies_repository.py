@@ -14,4 +14,4 @@ class CurrenciesRepository(HTTPClient):
             fdate=datetime.now().strftime('%d.%m.%Y')
         )
         
-        return await self.get('/rss/get_rates.cfm', vars(params))
+        return await self.get('/rss/get_rates.cfm', params.model_dump())

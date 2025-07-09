@@ -1,9 +1,9 @@
-from DTO import BankAccountDTO
+from DTO import BankAccountCreateDTO
 from fastapi import Request, Response
 from services import BankAccountService
 
 class BankAccountController:
-    async def create_bank_account(request: Request, bank_account: BankAccountDTO) -> Response:
+    async def create_bank_account(request: Request, bank_account: BankAccountCreateDTO) -> Response:
         return await BankAccountService().create_bank_account(request, bank_account)
 
     async def get_bank_account(request: Request, id: int) -> Response:

@@ -15,16 +15,18 @@ class UserService:
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.user_exists_error)
         
-    async def get_user(self, request: Request, id: int) -> Response:
-        existing_user = await UserRepository().get_user(id)
+    async def get_user(self, request: Request, id: int, with_relations: bool) -> Response:
+        user_repository = UserRepository()
+        existing_user = (await user_repository.get_user_with_relations(id) 
+                         if with_relations else await user_repository.get_user(id))
 
-        if existing_user:
-            return await ResponseUtils.success(
-                DataUtils.responses.user_received_message,
-                vars(UserDTO(**vars(existing_user)))
-            )
-        else:
+        if not existing_user:
             return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
+
+        return await ResponseUtils.success(
+            DataUtils.responses.user_received_message,
+            UserDTO(**existing_user.model_dump()).model_dump()
+        )
         
     async def delete_user(self, request: Request, id: int) -> Response:
         user_repository = UserRepository()

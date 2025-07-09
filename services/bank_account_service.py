@@ -1,11 +1,11 @@
-from DTO import BankAccountDTO
 from fastapi import Request, Response
 from utils import DataUtils, ResponseUtils
+from DTO import BankAccountDTO, BankAccountCreateDTO
 from repositories.user_repository import UserRepository
 from repositories.bank_account_repository import BankAccountRepository
 
 class BankAccountService:
-    async def create_bank_account(self, request: Request, bank_account: BankAccountDTO) -> Response:
+    async def create_bank_account(self, request: Request, bank_account: BankAccountCreateDTO) -> Response:
         existing_user = await UserRepository().get_user(bank_account.user_id)
 
         if existing_user:
@@ -21,7 +21,7 @@ class BankAccountService:
         if existing_bank_account:
             return await ResponseUtils.success(
                 DataUtils.responses.bank_account_received_message, 
-                vars(BankAccountDTO(**vars(existing_bank_account)))
+                BankAccountDTO(**existing_bank_account.model_dump()).model_dump()
             )
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)

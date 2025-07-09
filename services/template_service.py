@@ -12,7 +12,7 @@ class TemplateService:
         )
 
         templates = Jinja2Templates(directory="../templates")
-        template = templates.TemplateResponse("index.html", vars(data))
+        template = templates.TemplateResponse("index.html", data.model_dump())
         ResponseTemplateDTO(**vars(template))
         
         return template

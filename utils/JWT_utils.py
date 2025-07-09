@@ -18,7 +18,7 @@ class JWTUtils:
         )
 
         return jwt.encode(
-            vars(payload), 
+            payload.model_dump(), 
             StorageUtils.private_key, 
             algorithm=getenv('ENCODE_ALGORITHM')
         )

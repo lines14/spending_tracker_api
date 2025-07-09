@@ -15,11 +15,13 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
         body_bytes = await request.body()
 
         async def receive():
-            return vars(ReceiveDTO(
+            receive = ReceiveDTO(
                 type="http.request", 
                 body=json.loads(body_bytes), 
                 more_body=False
-            ))
+            )
+
+            return receive.model_dump()
         
         request = Request(request.scope, receive)
         
@@ -40,7 +42,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
                     snippet=frame.line
                 )
 
-                stack.append(vars(stack_element))
+                stack.append(stack_element.model_dump())
 
             stack.reverse()
 
@@ -50,7 +52,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
             )
 
             Logger.log('\n' + '-' * 100 + '\n')
-            Logger.log(json.dumps(vars(error_info), indent=2))
+            Logger.log(json.dumps(error_info.model_dump(), indent=2))
 
             formatted_stack = "[\n" + ",\n".join(json.dumps(stack_element) for stack_element in stack) + "\n]"
             

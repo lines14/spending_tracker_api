@@ -30,7 +30,7 @@ class SessionRepository:
             value=stringified_session
         )
 
-        await redis_client.setex(**vars(data))
+        await redis_client.setex(**data.model_dump())
 
     async def get_session(self, user_id: int) -> Optional[SessionDTO]:
         redis_client = RedisClient()

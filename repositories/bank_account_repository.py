@@ -5,7 +5,7 @@ from models import BankAccount
 
 class BankAccountRepository:    
     async def create_bank_account(self, bank_account: BankAccountDTO) -> None:
-        await BankAccount(**vars(bank_account)).create()
+        await BankAccount(**bank_account.model_dump()).create()
 
     async def get_bank_account(self, id: int) -> Optional[BankAccountDTO]:
         bank_account = await BankAccount(id=id).get()

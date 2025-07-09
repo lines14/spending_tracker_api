@@ -20,12 +20,12 @@ class ResponseUtils:
         )
 
         response = ResponseDTO(
-            content=json.dumps(vars(content)), 
+            content=json.dumps(content.model_dump()), 
             media_type=media_type, 
             status_code=status_code
         )
 
-        return Response(**vars(response))
+        return Response(**response.model_dump())
 
     @staticmethod
     async def error(
@@ -42,7 +42,7 @@ class ResponseUtils:
         )
 
         response = ResponseDTO(
-            content=json.dumps(vars(content)), 
+            content=json.dumps(content.model_dump()), 
             media_type=media_type, 
             status_code=status_code
         )
@@ -63,4 +63,4 @@ class ResponseUtils:
             
             await error_log.create()
 
-        return Response(**vars(response))
+        return Response(**response.model_dump())

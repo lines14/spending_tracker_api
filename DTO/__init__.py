@@ -8,11 +8,12 @@ from .error_info_DTO import ErrorInfoDTO
 from .credentials_DTO import CredentialsDTO
 from .bank_account_DTO import BankAccountDTO
 from .stack_element_DTO import StackElementDTO
+from .purchase_create_DTO import PurchaseCreateDTO
 from .response_content_DTO import ResponseContentDTO
 from .redis_set_request_DTO import RedisSetRequestDTO
 from .response_template_DTO import ResponseTemplateDTO
-from .user_with_relations_DTO import UserWithRelationsDTO
 from .redis_setex_request_DTO import RedisSetexRequestDTO
+from .bank_account_create_DTO import BankAccountCreateDTO
 from .currency_rate_request_DTO import CurrencyRateRequestDTO
 from .currency_rate_response_DTO import CurrencyRateResponseDTO
 from .response_template_context_DTO import ResponseTemplateContextDTO
