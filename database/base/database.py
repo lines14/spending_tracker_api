@@ -152,11 +152,15 @@ class Database(DeclarativeBase):
 
     async def joined_load(self, instance, keys: list[str], with_soft_deleted: bool):
         async with self as db:
-            options = [self.build_nested_joinedload(type(instance), key) for key in keys]
-            query = select(type(instance)).options(*options)
+            instance_properties = await self.get_not_empty_properties(instance)
+            filter_expressions = [getattr(type(instance), key) == value for key, value in instance_properties.items()]
 
             if not with_soft_deleted:
-                query = query.filter(getattr(type(instance), "deleted_at") == None)
+                filter_expressions.append(getattr(type(instance), 'deleted_at') == None)
+
+            options = [self.build_nested_joinedload(type(instance), key) for key in keys]
 
             async with db.session.begin():
-                return (await db.session.execute(query)).unique().scalars().all()
+                return (await db.session.execute(
+                    select(type(instance)).options(*options).filter(*filter_expressions).order_by(desc(type(instance).id))
+                )).unique().scalars().first()

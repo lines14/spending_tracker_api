@@ -104,4 +104,4 @@ class UserRepository:
 
             await redis_client.set(**data.model_dump())
 
-        return UserDTO(**json.loads(stringified_user)[0])
+        return UserDTO(**json.loads(stringified_user))
