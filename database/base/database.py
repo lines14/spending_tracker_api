@@ -124,26 +124,16 @@ class Database(DeclarativeBase):
                 
             async with db.session.begin():
                 return (await db.session.execute(query)).scalars().all()
-            
-    async def delete_all(self, instance, with_soft_deleted: bool, soft_delete: bool):
+
+    async def delete_all(self, instance, soft_delete: bool):
         async with self as db:
-            query = select(type(instance))
-
-            if not with_soft_deleted:
-                query = query.filter(getattr(type(instance), 'deleted_at') == None)
-
             async with db.session.begin():
-                existing_records = (await db.session.execute(query)).scalars().all()
-
-                if len(existing_records) > 0:
-                    if soft_delete:
-                        for existing_record in existing_records:
-                            setattr(existing_record, 'deleted_at', datetime.utcnow())
-                    else:
-                        for existing_record in existing_records:
-                            await db.session.delete(existing_record)
-
-                await db.session.commit()
+                if soft_delete:
+                    await db.session.execute(
+                        update(type(instance)).values(deleted_at=datetime.utcnow())
+                    )
+                else:
+                    await db.session.execute(delete(type(instance)))
 
     async def joined_load(self, instance, keys: list[str], with_soft_deleted: bool):
         async with self as db:

@@ -39,7 +39,7 @@ class BaseModel(SQLModel):
     async def create(self):
         await Database().create(self)
 
-    async def delete(self, soft_delete: bool = True):
+    async def delete(self, soft_delete: bool):
         await Database().delete(self, soft_delete)
 
     async def get(self, with_soft_deleted: bool = False):
@@ -56,8 +56,8 @@ class BaseModel(SQLModel):
     
         return result
     
-    async def delete_all(self, with_soft_deleted: bool = False, soft_delete: bool = True):
-        await Database().delete_all(self, with_soft_deleted, soft_delete)
+    async def delete_all(self, soft_delete: bool):
+        await Database().delete_all(self, soft_delete)
 
     @classmethod
     def validate(cls: Type[BaseModel], fields: list[str]):

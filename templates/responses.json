@@ -19,6 +19,7 @@
     "purchase_deleted_message": "Successfully deleted purchase {id}",
     "purchase_received_message": "Purchase was successfully received",
     "bank_account_created_message": "Successfully created bank account",
+    "bank_accounts_deleted_message": "Successfully deleted bank accounts",
     "bank_account_deleted_message": "Successfully deleted bank account {id}",
     "bank_account_received_message": "Bank account was successfully received",
     "bank_accounts_received_message": "Bank accounts was successfully received",

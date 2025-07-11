@@ -44,3 +44,8 @@ class BankAccountService:
             return await ResponseUtils.success(DataUtils.responses.bank_account_deleted_message.format(id=id))
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
+        
+    async def delete_bank_accounts(self, soft_delete: bool) -> Response:
+        await BankAccountRepository().delete_bank_accounts(soft_delete)
+            
+        return await ResponseUtils.success(DataUtils.responses.bank_accounts_deleted_message)
