@@ -1,7 +1,7 @@
 from config import Config
 from datetime import datetime
-from sqlalchemy import inspect, desc, select
 from sqlalchemy.orm import DeclarativeBase, joinedload
+from sqlalchemy import inspect, desc, select, update, delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 class Database(DeclarativeBase):
@@ -76,7 +76,7 @@ class Database(DeclarativeBase):
             for index, instance in enumerate(instances):
                 instance.id = index + 1
                 await db.create_or_update(instance)
-                
+
     async def delete(self, instance, soft_delete: bool):
         async with self as db:
             instance_properties = await self.get_not_empty_properties(instance)
@@ -87,17 +87,12 @@ class Database(DeclarativeBase):
             filter_expressions = [getattr(type(instance), key) == value for key, value in instance_properties.items()]
 
             async with db.session.begin():
-                existing_record = (await db.session.execute(
-                    select(type(instance)).filter(*filter_expressions).order_by(desc(type(instance).id))
-                )).scalars().first()
-
-                if existing_record:
-                    if soft_delete:
-                        setattr(existing_record, 'deleted_at', datetime.utcnow())
-                    else:
-                        await db.session.delete(existing_record)
-
-                await db.session.commit()
+                if soft_delete:
+                    await db.session.execute(
+                        update(type(instance)).filter(*filter_expressions).values(deleted_at=datetime.utcnow())
+                    )
+                else:
+                    await db.session.execute(delete(type(instance)).filter(*filter_expressions))
 
     async def create(self, instance):
         async with self as db:

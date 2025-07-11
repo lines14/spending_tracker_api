@@ -28,12 +28,12 @@ class UserService:
             UserDTO(**existing_user.model_dump()).model_dump()
         )
         
-    async def delete_user(self, request: Request, id: int) -> Response:
+    async def delete_user(self, request: Request, id: int, soft_delete: bool) -> Response:
         user_repository = UserRepository()
         existing_user = await user_repository.get_user(id)
 
         if existing_user:
-            await user_repository.delete_user(existing_user.id)
+            await user_repository.delete_user(existing_user.id, soft_delete)
             
             return await ResponseUtils.success(DataUtils.responses.user_deleted_message.format(id=id))
         else:

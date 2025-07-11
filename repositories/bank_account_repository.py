@@ -17,5 +17,5 @@ class BankAccountRepository:
 
         return BankAccountDTO(**json.loads(stringified_bank_account))
 
-    async def delete_bank_account(self, id: int) -> None:
-        await BankAccount(id=id).delete()
+    async def delete_bank_account(self, id: int, soft_delete: bool) -> None:
+        await BankAccount(id=id).delete(soft_delete)

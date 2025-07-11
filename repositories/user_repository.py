@@ -27,7 +27,7 @@ class UserRepository:
 
         await redis_client.set(**data.model_dump())
 
-    async def delete_user(self, id: int) -> None:
+    async def delete_user(self, id: int, soft_delete: bool) -> None:
         redis_client = RedisClient()
         name = redis_client.create_key('user', id)
         stringified_user = await redis_client.get(name)
@@ -39,7 +39,7 @@ class UserRepository:
         await redis_client.delete(user.login)
         await redis_client.delete(name)
 
-        await User(id=id).delete()
+        await User(id=id).delete(soft_delete)
     
     async def get_user(self, id: int) -> Optional[UserDTO]:
         redis_client = RedisClient()

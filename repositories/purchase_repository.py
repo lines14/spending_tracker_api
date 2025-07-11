@@ -17,5 +17,5 @@ class PurchaseRepository:
 
         return PurchaseDTO(**json.loads(stringified_purchase))
 
-    async def delete_purchase(self, id: int) -> None:
-        await Purchase(id=id).delete()
+    async def delete_purchase(self, id: int, soft_delete: bool) -> None:
+        await Purchase(id=id).delete(soft_delete)

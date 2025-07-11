@@ -26,12 +26,12 @@ class PurchaseService:
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.purchase_not_found_error)
 
-    async def delete_purchase(self, request: Request, id: int) -> Response:
+    async def delete_purchase(self, request: Request, id: int, soft_delete: bool) -> Response:
         purchase_repository = PurchaseRepository()
         existing_purchase = await purchase_repository.get_purchase(id)
 
         if existing_purchase:
-            await purchase_repository.delete_purchase(id)
+            await purchase_repository.delete_purchase(id, soft_delete)
             
             return await ResponseUtils.success(DataUtils.responses.purchase_deleted_message.format(id=id))
         else:
