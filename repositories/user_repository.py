@@ -10,19 +10,19 @@ class UserRepository:
     async def create_user(self, credentials: CredentialsDTO) -> None:
         redis_client = RedisClient()
 
-        user = User(
+        new_user = User(
             login=credentials.login, 
             hashed_password=CryptographyUtils.hash_string(credentials.password)
         )
 
-        await user.create()
+        await new_user.create()
         
-        name = redis_client.create_key('user', user.id)
-        stringified_user = json.dumps(user.to_dict(), default=str)
+        name = redis_client.create_key('user', new_user.id)
+        new_stringified_user = json.dumps(new_user.to_dict(), default=str)
 
         data = RedisSetRequestDTO(
             name=name, 
-            value=stringified_user
+            value=new_stringified_user
         )
 
         await redis_client.set(**data.model_dump())

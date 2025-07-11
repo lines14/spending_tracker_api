@@ -12,22 +12,22 @@ class SessionRepository:
 
         hashed_token = CryptographyUtils.hash_string(token)
 
-        session = Session(
+        new_session = Session(
             user_id=user_id, 
             token=hashed_token,
             host=headers.get('host'),
             user_agent=headers.get('user-agent')
         )
 
-        await session.create()
+        await new_session.create()
 
-        name = redis_client.create_key('session', session.user_id)
-        stringified_session = json.dumps(session.to_dict(), default=str)
+        name = redis_client.create_key('session', new_session.user_id)
+        new_stringified_session = json.dumps(new_session.to_dict(), default=str)
 
         data = RedisSetexRequestDTO(
             name=name,
             time=getenv('TOKEN_TTL'), 
-            value=stringified_session
+            value=new_stringified_session
         )
 
         await redis_client.setex(**data.model_dump())

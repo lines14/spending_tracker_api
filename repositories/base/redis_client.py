@@ -29,5 +29,5 @@ class RedisClient:
     async def disconnect(self):
         await self.__client.connection_pool.disconnect()
 
-    def create_key(self, prefix: str, id: int) -> str:
-        return f"{prefix}:{str(id)}"
+    def create_key(self, prefix: str, id: Optional[int] = None) -> str:
+        return f"{prefix}:{str(id)}" if id else f"{prefix}"

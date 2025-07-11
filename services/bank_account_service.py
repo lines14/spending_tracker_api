@@ -25,6 +25,14 @@ class BankAccountService:
             )
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
+        
+    async def get_bank_accounts(self) -> Response:
+        existing_bank_accounts = await BankAccountRepository().get_bank_accounts()
+
+        return await ResponseUtils.success(
+            DataUtils.responses.bank_accounts_received_message, 
+            [BankAccountDTO(**item.model_dump()).model_dump() for item in existing_bank_accounts]
+        )
 
     async def delete_bank_account(self, request: Request, id: int, soft_delete: bool) -> Response:
         bank_account_repository = BankAccountRepository()

@@ -21,6 +21,7 @@
     "bank_account_created_message": "Successfully created bank account",
     "bank_account_deleted_message": "Successfully deleted bank account {id}",
     "bank_account_received_message": "Bank account was successfully received",
+    "bank_accounts_received_message": "Bank accounts was successfully received",
     "invalid_relationship_path_error_message": "Invalid relationship path {key}",
 
     "login_validation_message": "login must be without spaces and can contain only letters and numbers",
