@@ -1,5 +1,4 @@
 import asyncio
-from database.base.database import Database
 from models import ProductType, ProductSubType
 from database.seeders.base.base_seeder import BaseSeeder
 
@@ -10,7 +9,7 @@ class ProductSubTypes(BaseSeeder):
         async def seed():
             product_types = await ProductType().get_all()
 
-            await Database().seed([
+            data_list = [
                 ProductSubType(
                     type_id=self.get_related(product_types, type='Овощи').id, 
                     sub_type='Огурцы'
@@ -443,6 +442,8 @@ class ProductSubTypes(BaseSeeder):
                     type_id=self.get_related(product_types, type='Уборка').id, 
                     sub_type='Средство для мытья посуды'
                 )
-            ])
+            ]
+
+            await self.seed(data_list)
             
         asyncio.run(seed())

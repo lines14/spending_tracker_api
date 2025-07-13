@@ -1,6 +1,5 @@
 import asyncio
 from models import BankAccountIssuer
-from database.base.database import Database
 from database.seeders.base.base_seeder import BaseSeeder
 
 class BankAccountIssuers(BaseSeeder):
@@ -8,7 +7,7 @@ class BankAccountIssuers(BaseSeeder):
 
     def __init__(self):
         async def seed():
-            await Database().seed([
+            data_list = [
                 BankAccountIssuer(issuer='Kaspi', country_code='KAZ'),
                 BankAccountIssuer(issuer='Halyk', country_code='KAZ'),
                 BankAccountIssuer(issuer='Freedom', country_code='KAZ'),
@@ -20,6 +19,8 @@ class BankAccountIssuers(BaseSeeder):
                 BankAccountIssuer(issuer='Sberbank', country_code='RUS'),
                 BankAccountIssuer(issuer='VTB', country_code='RUS'),
                 BankAccountIssuer(issuer='OTP', country_code='RUS')
-            ])
+            ]
+
+            await self.seed(data_list)
             
         asyncio.run(seed())

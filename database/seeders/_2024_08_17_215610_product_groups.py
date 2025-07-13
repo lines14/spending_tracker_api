@@ -1,6 +1,5 @@
 import asyncio
 from models import ProductGroup
-from database.base.database import Database
 from database.seeders.base.base_seeder import BaseSeeder
 
 class ProductGroups(BaseSeeder):
@@ -8,12 +7,14 @@ class ProductGroups(BaseSeeder):
 
     def __init__(self):
         async def seed():
-            await Database().seed([
+            data_list = [
                 ProductGroup(group='Продукты'),
                 ProductGroup(group='Бытовые товары'),
                 ProductGroup(group='Электроника'),
                 ProductGroup(group='Одежда'),
                 ProductGroup(group='Услуги')
-            ])
+            ]
+
+            await self.seed(data_list)
             
         asyncio.run(seed())

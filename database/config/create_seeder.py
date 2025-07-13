@@ -15,16 +15,18 @@ else:
     print(f'  Generating /app/database/seeders/{version}_{file_name}.py ...  done')
 
     content = f"""import asyncio
-from database.base.database import Database
 from database.seeders.base.base_seeder import BaseSeeder\n
 class {class_name}(BaseSeeder):
     revision: str = '{version}'\n
     def __init__(self):
         async def seed():
             # Add your list of related instances here
-            await Database().seed([
+            data_list = [
                 # Add your seed data here
-            ])
+            ]
+
+            await self.seed(data_list)
+            
         asyncio.run(seed())
 """
 

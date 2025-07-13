@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 import xml.etree.ElementTree as ET
 from DTO import CurrencyRateResponseDTO
 from models import Currency, CurrencyRate
-from database.base.database import Database
 from database.seeders.base.base_seeder import BaseSeeder
 from repositories.currencies_repository import CurrenciesRepository
 
@@ -46,12 +45,16 @@ class CurrencyRatesUpdaterSchedule(BaseSeeder):
                 rate=currency_rate.rate
             ))
 
-        await Database().seed([
+        
+
+        data_list = [
             CurrencyRate(
                 currency_id=self.get_related(currencies, currency='KZT').id, 
                 rate=1
             ),
             *currency_rates_models
-        ])
+        ]
+
+        await self.seed(data_list)
         
         print(f'INFO:     Successfully updated currency rates')

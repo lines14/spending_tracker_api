@@ -5,31 +5,32 @@ from sqlalchemy import inspect, desc, select, update, delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 class Database(DeclarativeBase):
-    def __init__(self): # if sqlite add arg: connect_args={'check_same_thread': False}
-        self.engine = create_async_engine(Config().DB_URL_ASYNC)
+    engine = create_async_engine(Config().DB_URL_ASYNC)
+    sessionmaker = async_sessionmaker(
+        bind=engine,
+        expire_on_commit=False,
+        autoflush=False
+    )
 
-        self.sessionmaker = async_sessionmaker(
-            bind=self.engine, 
-            expire_on_commit=False, 
-            autocommit=False, 
-            autoflush=False
-        )
-
-    async def init_tables(self):
-        async with self.engine.begin() as connection:
-            await connection.run_sync(self.metadata.create_all)
+    def __init__(self):
+        self.session = None
 
     async def __aenter__(self):
         self.session = self.sessionmaker()
-        await self.init_tables()
 
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if hasattr(self, 'session'):
+        if self.session:
             await self.session.close()
 
-        await self.engine.dispose()
+    @classmethod
+    async def dispose_engine(cls):
+        await cls.engine.dispose()
+
+    async def init_tables(self):
+        async with self.engine.begin() as connection:
+            await connection.run_sync(self.metadata.create_all)
 
     @staticmethod
     def build_nested_joinedload(model, key: str):
@@ -69,8 +70,6 @@ class Database(DeclarativeBase):
             else:
                 self.session.add(instance)
 
-            await self.session.commit()
-
     async def seed(self, instances):
         async with self as db:
             for index, instance in enumerate(instances):
@@ -98,7 +97,6 @@ class Database(DeclarativeBase):
         async with self as db:
             async with db.session.begin():
                 db.session.add(instance)
-                await db.session.commit()
 
             await db.session.refresh(instance)
 

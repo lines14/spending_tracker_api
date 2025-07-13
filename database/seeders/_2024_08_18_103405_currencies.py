@@ -1,6 +1,5 @@
 import asyncio
 from models import Currency
-from database.base.database import Database
 from database.seeders.base.base_seeder import BaseSeeder
 
 class Currencies(BaseSeeder):
@@ -8,11 +7,13 @@ class Currencies(BaseSeeder):
 
     def __init__(self):
         async def seed():
-            await Database().seed([
+            data_list = [
                 Currency(currency='KZT'),
                 Currency(currency='RUB'),
                 Currency(currency='USD'),
                 Currency(currency='EUR')
-            ])
+            ]
+
+            await self.seed(data_list)
             
         asyncio.run(seed())

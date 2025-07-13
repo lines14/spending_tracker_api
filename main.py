@@ -7,6 +7,7 @@ from middlewares import *
 from fastapi import FastAPI
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
+from database.base.database import Database
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
@@ -21,6 +22,7 @@ async def start_scheduler():
         
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await Database().init_tables()
     asyncio.create_task(start_scheduler())
     yield
 
