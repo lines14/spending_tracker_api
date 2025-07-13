@@ -1,11 +1,14 @@
 from config import Config
 from datetime import datetime
+from sqlalchemy.dialects.mysql import insert
+from sqlalchemy import desc, select, update, delete
 from sqlalchemy.orm import DeclarativeBase, joinedload
-from sqlalchemy import inspect, desc, select, update, delete
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 class Database(DeclarativeBase):
+    # if sqlite add arg: connect_args={'check_same_thread': False}
     engine = create_async_engine(Config().DB_URL_ASYNC)
+
     sessionmaker = async_sessionmaker(
         bind=engine,
         expire_on_commit=False,
@@ -43,55 +46,15 @@ class Database(DeclarativeBase):
             current_model = current_model.__mapper__.relationships[part].mapper.class_
 
         return loader
-
-    async def get_not_empty_properties(self, instance):
-        instance_properties = {attr.key: getattr(instance, attr.key) for attr in inspect(instance).mapper.column_attrs}
-
-        return {key: value for key, value in instance_properties.items() if value is not None}
-
-    async def create_or_update(self, instance):
-        instance_properties = await self.get_not_empty_properties(instance)
-        properties_for_update = instance_properties
+    
+    @staticmethod
+    def get_filter_expressions(instance):
+        instance_properties = dict(instance)
 
         if 'id' in instance_properties:
             instance_properties = {key: value for key, value in instance_properties.items() if key == 'id'}
 
-        filter_expressions = [getattr(type(instance), key) == value for key, value in instance_properties.items()]
-
-        async with self.session.begin():
-            existing_record = (await self.session.execute(
-                select(type(instance)).filter(*filter_expressions).order_by(desc(type(instance).id))
-            )).scalars().first()
-
-            if existing_record:
-                for attr, value in properties_for_update.items():
-                    setattr(existing_record, attr, value)
-                    setattr(existing_record, 'updated_at', datetime.utcnow())
-            else:
-                self.session.add(instance)
-
-    async def seed(self, instances):
-        async with self as db:
-            for index, instance in enumerate(instances):
-                instance.id = index + 1
-                await db.create_or_update(instance)
-
-    async def delete(self, instance, soft_delete: bool):
-        async with self as db:
-            instance_properties = await self.get_not_empty_properties(instance)
-
-            if 'id' in instance_properties:
-                instance_properties = {key: value for key, value in instance_properties.items() if key == 'id'}
-
-            filter_expressions = [getattr(type(instance), key) == value for key, value in instance_properties.items()]
-
-            async with db.session.begin():
-                if soft_delete:
-                    await db.session.execute(
-                        update(type(instance)).filter(*filter_expressions).values(deleted_at=datetime.utcnow())
-                    )
-                else:
-                    await db.session.execute(delete(type(instance)).filter(*filter_expressions))
+        return [getattr(type(instance), key) == value for key, value in instance_properties.items()]
 
     async def create(self, instance):
         async with self as db:
@@ -99,11 +62,26 @@ class Database(DeclarativeBase):
                 db.session.add(instance)
 
             await db.session.refresh(instance)
+            
+    async def create_or_update(self, instance):
+        async with self as db:
+            instance_properties = dict(instance)
+            instance_properties['updated_at'] = datetime.utcnow()
+
+            async with db.session.begin():
+                await db.session.execute(
+                    insert(type(instance)).values(**instance_properties).on_duplicate_key_update(**instance_properties)
+                )
+
+    async def seed(self, instances):
+        async with self as db:
+            for index, instance in enumerate(instances):
+                instance.id = index + 1
+                await db.create_or_update(instance)
 
     async def get(self, instance, with_soft_deleted: bool):
         async with self as db:
-            instance_properties = await self.get_not_empty_properties(instance)
-            filter_expressions = [getattr(type(instance), key) == value for key, value in instance_properties.items()]
+            filter_expressions = self.get_filter_expressions(instance)
 
             if not with_soft_deleted:
                 filter_expressions.append(getattr(type(instance), 'deleted_at') == None)
@@ -123,20 +101,9 @@ class Database(DeclarativeBase):
             async with db.session.begin():
                 return (await db.session.execute(query)).scalars().all()
 
-    async def delete_all(self, instance, soft_delete: bool):
-        async with self as db:
-            async with db.session.begin():
-                if soft_delete:
-                    await db.session.execute(
-                        update(type(instance)).values(deleted_at=datetime.utcnow())
-                    )
-                else:
-                    await db.session.execute(delete(type(instance)))
-
     async def joined_load(self, instance, keys: list[str], with_soft_deleted: bool):
         async with self as db:
-            instance_properties = await self.get_not_empty_properties(instance)
-            filter_expressions = [getattr(type(instance), key) == value for key, value in instance_properties.items()]
+            filter_expressions = self.get_filter_expressions(instance)
 
             if not with_soft_deleted:
                 filter_expressions.append(getattr(type(instance), 'deleted_at') == None)
@@ -147,3 +114,25 @@ class Database(DeclarativeBase):
                 return (await db.session.execute(
                     select(type(instance)).options(*options).filter(*filter_expressions).order_by(desc(type(instance).id))
                 )).unique().scalars().first()
+            
+    async def delete(self, instance, soft_delete: bool):
+        async with self as db:
+            filter_expressions = self.get_filter_expressions(instance)
+
+            async with db.session.begin():
+                if soft_delete:
+                    await db.session.execute(
+                        update(type(instance)).filter(*filter_expressions).values(deleted_at=datetime.utcnow())
+                    )
+                else:
+                    await db.session.execute(delete(type(instance)).filter(*filter_expressions))
+
+    async def delete_all(self, instance, soft_delete: bool):
+        async with self as db:
+            async with db.session.begin():
+                if soft_delete:
+                    await db.session.execute(
+                        update(type(instance)).values(deleted_at=datetime.utcnow())
+                    )
+                else:
+                    await db.session.execute(delete(type(instance)))
