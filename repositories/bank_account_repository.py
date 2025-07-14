@@ -49,7 +49,7 @@ class BankAccountRepository:
         stringified_bank_accounts = await redis_client.get(name)
 
         if not stringified_bank_accounts:
-            bank_accounts = await BankAccount().get_all()
+            bank_accounts = await BankAccount().get()
         
             stringified_bank_accounts = json.dumps(BankAccount.nested_models_to_dict(bank_accounts), default=str)
 
@@ -74,4 +74,4 @@ class BankAccountRepository:
         name = redis_client.create_key('bank_accounts')
         await redis_client.delete(name)
         
-        await BankAccount().delete_all(soft_delete)
+        await BankAccount().delete(soft_delete)

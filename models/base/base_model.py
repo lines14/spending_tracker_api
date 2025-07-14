@@ -44,9 +44,6 @@ class BaseModel(SQLModel):
 
     async def get(self, with_soft_deleted: bool = False):
         return await Database().get(self, with_soft_deleted)
-        
-    async def get_all(self, with_soft_deleted: bool = False):
-        return await Database().get_all(self, with_soft_deleted)
     
     async def joined_load(self, keys: list[str], with_soft_deleted: bool = False):
         result = await Database().joined_load(self, keys, with_soft_deleted)
@@ -55,9 +52,6 @@ class BaseModel(SQLModel):
             return self.clean_soft_deleted_relations(result)
     
         return result
-    
-    async def delete_all(self, soft_delete: bool):
-        await Database().delete_all(self, soft_delete)
 
     @classmethod
     def validate(cls: Type[BaseModel], fields: list[str]):

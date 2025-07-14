@@ -70,7 +70,9 @@ class Database(DeclarativeBase):
 
             async with db.session.begin():
                 await db.session.execute(
-                    insert(type(instance)).values(**instance_properties).on_duplicate_key_update(**instance_properties)
+                    insert(type(instance))
+                    .values(**instance_properties)
+                    .on_duplicate_key_update(**instance_properties)
                 )
 
     async def seed(self, instances):
@@ -86,20 +88,13 @@ class Database(DeclarativeBase):
             if not with_soft_deleted:
                 filter_expressions.append(getattr(type(instance), 'deleted_at') == None)
 
-            async with db.session.begin():
-                return (await db.session.execute(
-                    select(type(instance)).filter(*filter_expressions).order_by(desc(type(instance).id))
-                )).scalars().first()
-    
-    async def get_all(self, instance, with_soft_deleted: bool):
-        async with self as db:
-            query = select(type(instance))
+            result = await db.session.execute(
+                select(type(instance))
+                .filter(*filter_expressions)
+                .order_by(desc(type(instance).id))
+            )
 
-            if not with_soft_deleted:
-                query = query.filter(getattr(type(instance), 'deleted_at') == None)
-                
-            async with db.session.begin():
-                return (await db.session.execute(query)).scalars().all()
+            return result.scalars().all()
 
     async def joined_load(self, instance, keys: list[str], with_soft_deleted: bool):
         async with self as db:
@@ -110,29 +105,48 @@ class Database(DeclarativeBase):
 
             options = [self.build_nested_joinedload(type(instance), key) for key in keys]
 
-            async with db.session.begin():
-                return (await db.session.execute(
-                    select(type(instance)).options(*options).filter(*filter_expressions).order_by(desc(type(instance).id))
-                )).unique().scalars().first()
+            result = await db.session.execute(
+                select(type(instance))
+                .options(*options)
+                .filter(*filter_expressions)
+                .order_by(desc(type(instance).id))
+            )
+
+            return result.unique().scalars().first()
             
-    async def delete(self, instance, soft_delete: bool):
+    async def execute_delete(self, instance, soft_delete: bool):
         async with self as db:
             filter_expressions = self.get_filter_expressions(instance)
 
             async with db.session.begin():
                 if soft_delete:
                     await db.session.execute(
-                        update(type(instance)).filter(*filter_expressions).values(deleted_at=datetime.utcnow())
+                        update(type(instance))
+                        .filter(*filter_expressions)
+                        .values(deleted_at=datetime.utcnow())
                     )
                 else:
-                    await db.session.execute(delete(type(instance)).filter(*filter_expressions))
-
-    async def delete_all(self, instance, soft_delete: bool):
-        async with self as db:
-            async with db.session.begin():
-                if soft_delete:
                     await db.session.execute(
-                        update(type(instance)).values(deleted_at=datetime.utcnow())
+                        delete(type(instance))
+                        .filter(*filter_expressions)
                     )
-                else:
-                    await db.session.execute(delete(type(instance)))
+
+    async def delete(self, instance, soft_delete: bool):
+        async with self as db:
+            filter_expressions = self.get_filter_expressions(instance)
+
+            async with db.session.begin():
+                result = await db.session.execute(
+                    select(type(instance))
+                    .filter(*filter_expressions)
+                )
+                
+                existing_records = result.scalars().all()
+
+                if len(existing_records) > 0:
+                    if soft_delete:
+                        for existing_record in existing_records:
+                            setattr(existing_record, 'deleted_at', datetime.utcnow())
+                    else:
+                        for existing_record in existing_records:
+                            await db.session.delete(existing_record)
