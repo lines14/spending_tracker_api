@@ -8,11 +8,12 @@ class PurchaseRepository:
         await Purchase(**purchase.model_dump()).create()
 
     async def get_purchase(self, id: int) -> Optional[PurchaseDTO]:
-        purchase = await Purchase(id=id).get()
+        result = await Purchase(id=id).get()
 
-        if not purchase:
+        if not result:
             return None
         
+        purchase = result.pop()
         stringified_purchase = json.dumps(purchase.to_dict(), default=str)
 
         return PurchaseDTO(**json.loads(stringified_purchase))

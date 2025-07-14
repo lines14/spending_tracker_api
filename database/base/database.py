@@ -112,7 +112,7 @@ class Database(DeclarativeBase):
                 .order_by(desc(type(instance).id))
             )
 
-            return result.unique().scalars().first()
+            return result.unique().scalars().all()
             
     async def execute_delete(self, instance, soft_delete: bool):
         async with self as db:

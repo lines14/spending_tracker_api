@@ -47,11 +47,12 @@ class UserRepository:
         stringified_user = await redis_client.get(name)
 
         if not stringified_user:
-            user = await User(id=id).get()
+            result = await User(id=id).get()
 
-            if not user:
+            if not result:
                 return None
-
+            
+            user = result.pop()
             stringified_user = json.dumps(user.to_dict(), default=str)
 
             data = RedisSetRequestDTO(
@@ -68,11 +69,12 @@ class UserRepository:
         user_id = await redis_client.get(login)
 
         if not user_id:
-            user = await User(login=login).get()
+            result = await User(login=login).get()
 
-            if not user:
+            if not result:
                 return None
 
+            user = result.pop()
             user_id = str(user.id)
 
             data = RedisSetRequestDTO(
@@ -90,11 +92,12 @@ class UserRepository:
         stringified_user = await redis_client.get(name)
 
         if not stringified_user:
-            user = await User(id=id).joined_load(["bank_accounts", "bank_accounts.purchases"])
+            result = await User(id=id).joined_load(["bank_accounts", "bank_accounts.purchases"])
 
-            if not user:
+            if not result:
                 return None
 
+            user = result.pop()
             stringified_user = json.dumps(User.nested_models_to_dict(user), default=str)
 
             data = RedisSetRequestDTO(

@@ -27,11 +27,12 @@ class BankAccountRepository:
         stringified_bank_account = await redis_client.get(name)
 
         if not stringified_bank_account:
-            bank_account = await BankAccount(id=id).get()
+            result = await BankAccount(id=id).get()
 
-            if not bank_account:
+            if not result:
                 return None
-        
+
+            bank_account = result.pop()
             stringified_bank_account = json.dumps(bank_account.to_dict(), default=str)
 
             data = RedisSetRequestDTO(
@@ -49,9 +50,9 @@ class BankAccountRepository:
         stringified_bank_accounts = await redis_client.get(name)
 
         if not stringified_bank_accounts:
-            bank_accounts = await BankAccount().get()
+            result = await BankAccount().get()
         
-            stringified_bank_accounts = json.dumps(BankAccount.nested_models_to_dict(bank_accounts), default=str)
+            stringified_bank_accounts = json.dumps(BankAccount.nested_models_to_dict(result), default=str)
 
             data = RedisSetRequestDTO(
                 name=name, 
