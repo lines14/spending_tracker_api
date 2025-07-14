@@ -13,7 +13,7 @@ services:
       - spending-tracker-network
 
   mysql:
-    image: "mysql:8.4"
+    image: "mysql:latest"
     container_name: mysql_service
     restart: unless-stopped
     tty: true
