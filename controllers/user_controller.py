@@ -8,7 +8,7 @@ class UserController:
         return await UserService().create_user(request, credentials)
     
     async def get_user(request: Request, id: int, with_relations: Optional[bool] = False) -> Response:
-        return await UserService().get_user(request, id, with_relations)
+        return await UserService().get_user(request, locals(), with_relations)
 
     async def delete_user(request: Request, id: int, soft_delete: Optional[bool] = True) -> Response:
-        return await UserService().delete_user(request, id, soft_delete)
+        return await UserService().delete_user(request, locals(), soft_delete)

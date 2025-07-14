@@ -15,10 +15,10 @@ class UserService:
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.user_exists_error)
         
-    async def get_user(self, request: Request, id: int, with_relations: bool) -> Response:
+    async def get_user(self, request: Request, search_by: dict, with_relations: bool) -> Response:
         user_repository = UserRepository()
-        existing_user = (await user_repository.get_user_with_relations(id) 
-                         if with_relations else await user_repository.get_user(id))
+        existing_user = (await user_repository.get_users_with_relations(search_by) 
+                         if with_relations else await user_repository.get_users(search_by))
 
         if not existing_user:
             return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
@@ -28,13 +28,13 @@ class UserService:
             UserDTO(**existing_user.model_dump()).model_dump()
         )
         
-    async def delete_user(self, request: Request, id: int, soft_delete: bool) -> Response:
+    async def delete_user(self, request: Request, search_by: dict, soft_delete: bool) -> Response:
         user_repository = UserRepository()
-        existing_user = await user_repository.get_user(id)
+        existing_user = await user_repository.get_users(search_by)
 
         if existing_user:
-            await user_repository.delete_user(existing_user.id, soft_delete)
+            await user_repository.delete_users(search_by, soft_delete)
             
-            return await ResponseUtils.success(DataUtils.responses.user_deleted_message.format(id=id))
+            return await ResponseUtils.success(DataUtils.responses.user_deleted_message.format(id=DataUtils.dict_to_model(search_by).id))
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)

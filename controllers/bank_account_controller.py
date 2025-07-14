@@ -8,13 +8,13 @@ class BankAccountController:
         return await BankAccountService().create_bank_account(request, bank_account)
 
     async def get_bank_account(request: Request, id: int) -> Response:
-        return await BankAccountService().get_bank_account(request, id)
+        return await BankAccountService().get_bank_account(request, locals())
     
     async def get_bank_accounts() -> Response:
         return await BankAccountService().get_bank_accounts()
 
     async def delete_bank_account(request: Request, id: int, soft_delete: Optional[bool] = True) -> Response:
-        return await BankAccountService().delete_bank_account(request, id, soft_delete)
+        return await BankAccountService().delete_bank_account(request, locals(), soft_delete)
     
     async def delete_bank_accounts(soft_delete: Optional[bool] = True) -> Response:
         return await BankAccountService().delete_bank_accounts(soft_delete)

@@ -49,12 +49,25 @@ class Database(DeclarativeBase):
     
     @staticmethod
     def get_filter_expressions(instance):
+        filter_expressions = []
         instance_properties = dict(instance)
 
-        if 'id' in instance_properties:
-            instance_properties = {key: value for key, value in instance_properties.items() if key == 'id'}
+        if 'id' in instance_properties and instance_properties['id'] is not None:
+            value = instance_properties['id']
 
-        return [getattr(type(instance), key) == value for key, value in instance_properties.items()]
+            if isinstance(value, (list, tuple, set)):
+                return [getattr(type(instance), 'id').in_(value)]
+            else:
+                return [getattr(type(instance), 'id') == value]
+
+        for key, value in instance_properties.items():
+            if value is not None:
+                if isinstance(value, (list, tuple, set)):
+                    filter_expressions.append(getattr(type(instance), key).in_(value))
+                else:
+                    filter_expressions.append(getattr(type(instance), key) == value)
+
+        return filter_expressions
 
     async def create(self, instance):
         async with self as db:

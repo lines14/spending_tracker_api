@@ -8,7 +8,7 @@ class PurchaseController:
         return await PurchaseService().create_purchase(request, purchase)
     
     async def get_purchase(request: Request, id: int) -> Response:
-        return await PurchaseService().get_purchase(request, id)
+        return await PurchaseService().get_purchase(request, locals())
 
     async def delete_purchase(request: Request, id: int, soft_delete: Optional[bool] = True) -> Response:
-        return await PurchaseService().delete_purchase(request, id, soft_delete)
+        return await PurchaseService().delete_purchase(request, locals(), soft_delete)

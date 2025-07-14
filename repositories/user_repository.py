@@ -1,7 +1,7 @@
 import json
 from models import User
 from typing import Optional
-from utils import CryptographyUtils
+from utils import CryptographyUtils, DataUtils
 from repositories.base.redis_client import RedisClient
 from DTO import RedisSetRequestDTO, CredentialsDTO, UserDTO
 from repositories.session_repository import SessionRepository
@@ -27,27 +27,33 @@ class UserRepository:
 
         await redis_client.set(**data.model_dump())
 
-    async def delete_user(self, id: int, soft_delete: bool) -> None:
-        redis_client = RedisClient()
-        name = redis_client.create_key('user', id)
-        stringified_user = await redis_client.get(name)
+    async def delete_users(self, search_by: dict, soft_delete: bool) -> None:
+        if 'id' in search_by:
+            id = DataUtils.dict_to_model(search_by).id
 
-        user = UserDTO(**json.loads(stringified_user))
+            redis_client = RedisClient()
+            name = redis_client.create_key('user', id)
+            stringified_user = await redis_client.get(name)
 
-        await SessionRepository().delete_session(id)
+            user = UserDTO(**json.loads(stringified_user))
+            
+            await SessionRepository().delete_session(id)
 
-        await redis_client.delete(user.login)
-        await redis_client.delete(name)
+            await redis_client.delete(user.login)
+            await redis_client.delete(name)
 
-        await User(id=id).delete(soft_delete)
+        await User(**search_by).delete(soft_delete)
     
-    async def get_user(self, id: int) -> Optional[UserDTO]:
-        redis_client = RedisClient()
-        name = redis_client.create_key('user', id)
-        stringified_user = await redis_client.get(name)
+    async def get_users(self, search_by: dict) -> Optional[UserDTO]:
+        stringified_user= None
+
+        if 'id' in search_by:
+            redis_client = RedisClient()
+            name = redis_client.create_key('user', DataUtils.dict_to_model(search_by).id)
+            stringified_user = await redis_client.get(name)
 
         if not stringified_user:
-            result = await User(id=id).get()
+            result = await User(**search_by).get()
 
             if not result:
                 return None
@@ -55,12 +61,13 @@ class UserRepository:
             user = result.pop()
             stringified_user = json.dumps(user.to_dict(), default=str)
 
-            data = RedisSetRequestDTO(
-                name=name, 
-                value=stringified_user
-            )
+            if 'id' in search_by:
+                data = RedisSetRequestDTO(
+                    name=name, 
+                    value=stringified_user
+                )
 
-            await redis_client.set(**data.model_dump())
+                await redis_client.set(**data.model_dump())
 
         return UserDTO(**json.loads(stringified_user))
     
@@ -86,13 +93,16 @@ class UserRepository:
 
         return int(user_id)
     
-    async def get_user_with_relations(self, id: int) -> Optional[UserDTO]:
-        redis_client = RedisClient()
-        name = redis_client.create_key('user_with_relations', id)
-        stringified_user = await redis_client.get(name)
+    async def get_users_with_relations(self, search_by: dict) -> Optional[UserDTO]:
+        stringified_user= None
+
+        if 'id' in search_by:
+            redis_client = RedisClient()
+            name = redis_client.create_key('user_with_relations', DataUtils.dict_to_model(search_by).id)
+            stringified_user = await redis_client.get(name)
 
         if not stringified_user:
-            result = await User(id=id).joined_load(["bank_accounts", "bank_accounts.purchases"])
+            result = await User(**search_by).joined_load(["bank_accounts", "bank_accounts.purchases"])
 
             if not result:
                 return None
@@ -100,11 +110,12 @@ class UserRepository:
             user = result.pop()
             stringified_user = json.dumps(User.nested_models_to_dict(user), default=str)
 
-            data = RedisSetRequestDTO(
-                name=name, 
-                value=stringified_user
-            )
+            if 'id' in search_by:
+                data = RedisSetRequestDTO(
+                    name=name, 
+                    value=stringified_user
+                )
 
-            await redis_client.set(**data.model_dump())
+                await redis_client.set(**data.model_dump())
 
         return UserDTO(**json.loads(stringified_user))
