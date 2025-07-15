@@ -1,10 +1,11 @@
 import json
-from models import User
 from typing import Optional
+from models import User, BankAccount
 from utils import CryptographyUtils, DataUtils
 from repositories.base.redis_client import RedisClient
 from DTO import RedisSetRequestDTO, CredentialsDTO, UserDTO
 from repositories.session_repository import SessionRepository
+from repositories.bank_account_repository import BankAccountRepository
 
 class UserRepository:    
     async def create_user(self, credentials: CredentialsDTO) -> None:
@@ -28,6 +29,8 @@ class UserRepository:
         await redis_client.set(**data.model_dump())
 
     async def delete_users(self, search_by: dict, soft_delete: bool) -> None:
+        related_search_by = DataUtils.extract_child_foreign_id_as_id(search_by, User, BankAccount)
+
         if 'id' in search_by:
             id = DataUtils.dict_to_model(search_by).id
 
@@ -41,6 +44,9 @@ class UserRepository:
 
             await redis_client.delete(user.login)
             await redis_client.delete(name)
+
+        if not soft_delete:
+            await BankAccountRepository().delete_bank_accounts(related_search_by, soft_delete)
 
         await User(**search_by).delete(soft_delete)
     

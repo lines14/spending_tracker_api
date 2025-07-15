@@ -17,47 +17,50 @@ class DataUtils():
         obj.__dict__.update(data)
         return obj
     
-    @staticmethod
-    def extract_foreign_id_as_id_in_dict(data: dict, parent_class: Type, child_class: Type) -> dict:
-        fk_field = None
-
+    @classmethod
+    def search_foreign_field(cls, parent_class: Type, child_class: Type) -> str:
         for prop in class_mapper(child_class).iterate_properties:
             if isinstance(prop, RelationshipProperty) and prop.mapper.class_ == parent_class:
-                fk_field = list(prop.local_columns)[0].name
+                foreign_field = list(prop.local_columns)[0].name
 
                 break
 
-        if fk_field is None:
+        return foreign_field
+
+    @classmethod
+    def extract_parent_foreign_id_as_id(
+        cls,
+        data: dict, 
+        parent_class: Type, 
+        child_class: Type
+    ) -> dict[str, Any]:
+        foreign_field = cls.search_foreign_field(parent_class, child_class)
+
+        if foreign_field is None:
             return {}
 
-        value = data.get(fk_field)
+        value = data.get(foreign_field)
 
         if value is not None:
             return {'id': value}
         
         return {}
     
-    @staticmethod
-    def reversive_extract_foreign_id_as_id_in_dict(
+    @classmethod
+    def extract_child_foreign_id_as_id(
+        cls,
         parent_data: dict[str, Any],
         parent_class: Type,
         child_class: Type
     ) -> dict[str, Any]:
-        fk_field = None
+        foreign_field = cls.search_foreign_field(parent_class, child_class)
 
-        for prop in class_mapper(child_class).iterate_properties:
-            if isinstance(prop, RelationshipProperty) and prop.mapper.class_ == parent_class:
-                fk_field = list(prop.local_columns)[0].name
-                print(list(prop.local_columns)[0])
-
-                break
-
-        if fk_field is None:
+        if foreign_field is None:
             return {}
 
-        parent_id = parent_data.get("id")
+        parent_id = parent_data.get('id')
 
         if parent_id is None:
             return {}
 
-        return {fk_field: parent_id}
+        return {foreign_field: parent_id}

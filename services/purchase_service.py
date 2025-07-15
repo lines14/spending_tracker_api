@@ -7,7 +7,7 @@ from repositories.bank_account_repository import BankAccountRepository
 
 class PurchaseService:        
     async def create_purchase(self, request: Request, purchase: PurchaseCreateDTO) -> Response:
-        search_by = DataUtils.extract_foreign_id_as_id_in_dict(purchase.model_dump(), BankAccount, Purchase)
+        search_by = DataUtils.extract_parent_foreign_id_as_id(purchase.model_dump(), BankAccount, Purchase)
         existing_bank_account = await BankAccountRepository().get_bank_accounts(search_by)
 
         if existing_bank_account:

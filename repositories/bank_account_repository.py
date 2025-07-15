@@ -66,11 +66,12 @@ class BankAccountRepository:
         return [BankAccountDTO(**item) for item in json.loads(stringified_bank_accounts)]
 
     async def delete_bank_accounts(self, search_by: dict, soft_delete: bool) -> None:
-        related_search_by = DataUtils.reversive_extract_foreign_id_as_id_in_dict(search_by, BankAccount, Purchase)
+        related_search_by = DataUtils.extract_child_foreign_id_as_id(search_by, BankAccount, Purchase)
 
-        redis_client = RedisClient()
-        name = redis_client.create_key('bank_account', DataUtils.dict_to_model(search_by).id)
-        await redis_client.delete(name)
+        if 'id' in search_by:
+            redis_client = RedisClient()
+            name = redis_client.create_key('bank_account', DataUtils.dict_to_model(search_by).id)
+            await redis_client.delete(name)
         
         if not soft_delete:
             await PurchaseRepository().delete_purchases(related_search_by, soft_delete)

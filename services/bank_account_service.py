@@ -7,7 +7,7 @@ from repositories.bank_account_repository import BankAccountRepository
 
 class BankAccountService:
     async def create_bank_account(self, request: Request, bank_account: BankAccountCreateDTO) -> Response:
-        search_by = DataUtils.extract_foreign_id_as_id_in_dict(bank_account.model_dump(), User, BankAccount)
+        search_by = DataUtils.extract_parent_foreign_id_as_id(bank_account.model_dump(), User, BankAccount)
         existing_user = await UserRepository().get_users(search_by)
 
         if existing_user:
