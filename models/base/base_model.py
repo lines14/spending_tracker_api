@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 from sqlalchemy import func
 from typing import Type, Union, Any
 from datetime import datetime, timezone
@@ -27,7 +28,7 @@ class BaseModel(SQLModel):
         nullable=False,
     )
 
-    deleted_at: datetime = Field(
+    deleted_at: Optional[datetime] = Field(
         sa_type=TIMESTAMP(timezone=True),
         nullable=True,
     )
@@ -39,9 +40,6 @@ class BaseModel(SQLModel):
     async def create(self):
         await Database().create(self)
 
-    async def delete(self, soft_delete: bool):
-        await Database().delete(self, soft_delete)
-
     async def get(self, with_soft_deleted: bool = False):
         return await Database().get(self, with_soft_deleted)
     
@@ -52,6 +50,12 @@ class BaseModel(SQLModel):
             return self.clean_soft_deleted_relations(result)
     
         return result
+
+    async def update(self):
+        return await Database().update(self)
+
+    async def delete(self, soft_delete: bool):
+        await Database().delete(self, soft_delete)
 
     @classmethod
     def validate(cls: Type[BaseModel], fields: list[str]):

@@ -1,6 +1,6 @@
 from fastapi import Response, Request
-from DTO import CredentialsDTO, UserDTO
 from utils import DataUtils, ResponseUtils
+from DTO import CredentialsDTO, UserDTO, UserUpdateDTO
 from repositories.user_repository import UserRepository
 
 class UserService:
@@ -26,6 +26,21 @@ class UserService:
         return await ResponseUtils.success(
             DataUtils.responses.user_received_message,
             UserDTO(**existing_user.model_dump()).model_dump()
+        )
+    
+    async def update_user(self, request: Request, id: int, user: UserUpdateDTO) -> Response:
+        user.id = id
+        user_repository = UserRepository()
+        existing_user =  await user_repository.get_users(user.model_dump(exclude_unset=True), with_soft_deleted=True)
+
+        if not existing_user:
+            return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
+
+        updated_user = await user_repository.update_users(user)
+
+        return await ResponseUtils.success(
+            DataUtils.responses.user_updated_message.format(id=DataUtils.dict_to_model(user).id),
+            UserDTO(**updated_user.model_dump()).model_dump()
         )
         
     async def delete_user(self, request: Request, search_by: dict, soft_delete: bool) -> Response:

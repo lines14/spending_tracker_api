@@ -1,8 +1,8 @@
 from config import Config
 from datetime import datetime
 from sqlalchemy.dialects.mysql import insert
-from sqlalchemy import desc, select, update, delete
 from sqlalchemy.orm import DeclarativeBase, joinedload
+from sqlalchemy import desc, select, update, delete, inspect
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 class Database(DeclarativeBase):
@@ -47,10 +47,17 @@ class Database(DeclarativeBase):
 
         return loader
     
-    @staticmethod
-    def get_filter_expressions(instance):
+    def get_not_empty_properties(self, instance):
+        instance_properties = {
+            attr.key: getattr(instance, attr.key)
+            for attr in inspect(instance).mapper.column_attrs
+        }
+        
+        return {key: value for key, value in instance_properties.items() if value is not None}
+    
+    def get_filter_expressions(self, instance):
         filter_expressions = []
-        instance_properties = dict(instance)
+        instance_properties = self.get_not_empty_properties(instance)
 
         if 'id' in instance_properties and instance_properties['id'] is not None:
             value = instance_properties['id']
@@ -76,6 +83,25 @@ class Database(DeclarativeBase):
 
             await db.session.refresh(instance)
             
+    async def update(self, instance):
+        async with self as db:
+            filter_expressions = self.get_filter_expressions(instance)
+
+            async with db.session.begin():
+                result = await db.session.execute(
+                    select(type(instance))
+                    .filter(*filter_expressions)
+                )
+                
+                existing_records = result.scalars().all()
+
+                if len(existing_records) > 0:                    
+                    for existing_record in existing_records:
+                        for key, value in dict(instance).items():
+                            setattr(existing_record, key, value)
+
+                return existing_records
+
     async def create_or_update(self, instance):
         async with self as db:
             instance_properties = dict(instance)

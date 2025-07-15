@@ -3,9 +3,8 @@ from typing import Optional
 from models import User, BankAccount
 from utils import CryptographyUtils, DataUtils
 from repositories.base.redis_client import RedisClient
-from DTO import RedisSetRequestDTO, CredentialsDTO, UserDTO
 from repositories.session_repository import SessionRepository
-from repositories.bank_account_repository import BankAccountRepository
+from DTO import RedisSetRequestDTO, CredentialsDTO, UserDTO, UserUpdateDTO
 
 class UserRepository:    
     async def create_user(self, credentials: CredentialsDTO) -> None:
@@ -29,8 +28,6 @@ class UserRepository:
         await redis_client.set(**data.model_dump())
 
     async def delete_users(self, search_by: dict, soft_delete: bool) -> None:
-        related_search_by = DataUtils.extract_child_foreign_id_as_id(search_by, User, BankAccount)
-
         if 'id' in search_by:
             id = DataUtils.dict_to_model(search_by).id
 
@@ -45,12 +42,35 @@ class UserRepository:
             await redis_client.delete(user.login)
             await redis_client.delete(name)
 
-        if not soft_delete:
-            await BankAccountRepository().delete_bank_accounts(related_search_by, soft_delete)
-
         await User(**search_by).delete(soft_delete)
     
-    async def get_users(self, search_by: dict) -> Optional[UserDTO]:
+    async def update_users(self, user: UserUpdateDTO) -> Optional[UserDTO]:
+        if user.password:
+            user.hashed_password = CryptographyUtils.hash_string(user.password)
+            delattr(user, 'password')
+            
+        result = await User(**user.model_dump(exclude_unset=True)).update()
+
+        if not result:
+            return None
+        
+        for user in result:
+            stringified_user = json.dumps(user.to_dict(), default=str)
+
+            if hasattr(user, 'id'):
+                redis_client = RedisClient()
+                name = redis_client.create_key('user', user.id)
+
+                data = RedisSetRequestDTO(
+                    name=name, 
+                    value=stringified_user
+                )
+
+                await redis_client.set(**data.model_dump())
+
+        return [UserDTO(**item) for item in json.loads(stringified_user)] if len(result) > 1 else UserDTO(**json.loads(stringified_user))
+    
+    async def get_users(self, search_by: dict, with_soft_deleted: bool = False) -> Optional[UserDTO]:
         stringified_user= None
 
         if 'id' in search_by:
@@ -59,7 +79,8 @@ class UserRepository:
             stringified_user = await redis_client.get(name)
 
         if not stringified_user:
-            result = await User(**search_by).get()
+            print(search_by)
+            result = await User(**search_by).get(with_soft_deleted)
 
             if not result:
                 return None
