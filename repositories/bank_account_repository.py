@@ -13,7 +13,7 @@ class BankAccountRepository:
         await new_bank_account.create()
 
         name = redis_client.create_key('bank_account', new_bank_account.id)
-        new_stringified_bank_account = json.dumps(new_bank_account.to_dict(), default=str)
+        new_stringified_bank_account = json.dumps(new_bank_account.model_dump(), default=str)
 
         data = RedisSetRequestDTO(
             name=name, 
@@ -34,7 +34,7 @@ class BankAccountRepository:
                 return None
 
             bank_account = result.pop()
-            stringified_bank_account = json.dumps(bank_account.to_dict(), default=str)
+            stringified_bank_account = json.dumps(bank_account.model_dump(), default=str)
 
             data = RedisSetRequestDTO(
                 name=name, 

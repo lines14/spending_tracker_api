@@ -1,13 +1,13 @@
 import json
+from models import User
 from typing import Optional
-from models import User, BankAccount
 from utils import CryptographyUtils, DataUtils
 from repositories.base.redis_client import RedisClient
 from repositories.session_repository import SessionRepository
 from DTO import RedisSetRequestDTO, CredentialsDTO, UserDTO, UserUpdateDTO
 
 class UserRepository:    
-    async def create_user(self, credentials: CredentialsDTO) -> None:
+    async def create_user(self, credentials: CredentialsDTO) -> UserDTO:
         redis_client = RedisClient()
 
         new_user = User(
@@ -18,7 +18,7 @@ class UserRepository:
         await new_user.create()
         
         name = redis_client.create_key('user', new_user.id)
-        new_stringified_user = json.dumps(new_user.to_dict(), default=str)
+        new_stringified_user = json.dumps(new_user.model_dump(), default=str)
 
         data = RedisSetRequestDTO(
             name=name, 
@@ -27,20 +27,29 @@ class UserRepository:
 
         await redis_client.set(**data.model_dump())
 
+        return UserDTO(**json.loads(new_stringified_user))
+
     async def delete_users(self, search_by: dict, soft_delete: bool) -> None:
         if 'id' in search_by:
             id = DataUtils.dict_to_model(search_by).id
 
-            redis_client = RedisClient()
-            name = redis_client.create_key('user', id)
-            stringified_user = await redis_client.get(name)
+            async def delete_from_cache(id):
+                redis_client = RedisClient()
+                name = redis_client.create_key('user', id)
+                stringified_user = await redis_client.get(name)
 
-            user = UserDTO(**json.loads(stringified_user))
-            
-            await SessionRepository().delete_session(id)
+                user = UserDTO(**json.loads(stringified_user))
+                
+                await SessionRepository().delete_session(id)
 
-            await redis_client.delete(user.login)
-            await redis_client.delete(name)
+                await redis_client.delete(user.login)
+                await redis_client.delete(name)
+
+            if isinstance(id, list) and len(id) > 0:
+                for element in id:
+                    await delete_from_cache(element)
+            else:
+                await delete_from_cache(id)
 
         await User(**search_by).delete(soft_delete)
     
@@ -51,11 +60,11 @@ class UserRepository:
             
         result = await User(**user.model_dump(exclude_unset=True)).update()
 
-        if not result:
+        if len(result) < 1:
             return None
         
         for user in result:
-            stringified_user = json.dumps(user.to_dict(), default=str)
+            stringified_user = json.dumps(user.model_dump(), default=str)
 
             if hasattr(user, 'id'):
                 redis_client = RedisClient()
@@ -79,14 +88,13 @@ class UserRepository:
             stringified_user = await redis_client.get(name)
 
         if not stringified_user:
-            print(search_by)
             result = await User(**search_by).get(with_soft_deleted)
 
             if not result:
                 return None
             
             user = result.pop()
-            stringified_user = json.dumps(user.to_dict(), default=str)
+            stringified_user = json.dumps(user.model_dump(), default=str)
 
             if 'id' in search_by:
                 data = RedisSetRequestDTO(

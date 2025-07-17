@@ -14,7 +14,7 @@ class PurchaseRepository:
             return None
         
         purchase = result.pop()
-        stringified_purchase = json.dumps(purchase.to_dict(), default=str)
+        stringified_purchase = json.dumps(purchase.model_dump(), default=str)
 
         return PurchaseDTO(**json.loads(stringified_purchase))
 

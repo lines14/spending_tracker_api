@@ -22,7 +22,7 @@ class SessionRepository:
         await new_session.create()
 
         name = redis_client.create_key('session', new_session.user_id)
-        new_stringified_session = json.dumps(new_session.to_dict(), default=str)
+        new_stringified_session = json.dumps(new_session.model_dump(), default=str)
 
         data = RedisSetexRequestDTO(
             name=name,

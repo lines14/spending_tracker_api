@@ -9,7 +9,7 @@ router.post('/auth', response_model=ResponseContentDTO)(AuthController.auth)
 router.get('/greetings', response_model=ResponseContentDTO)(GreetingsController.greetings)
 
 user_router = APIRouter(prefix="/user", tags=["User"])
-router.post('/registration', response_model=ResponseContentDTO)(UserController.create_user)
+router.post('/registration', response_model=UserDTO)(UserController.create_user)
 user_router.get('/{id}', response_model=UserDTO)(UserController.get_user)
 user_router.put('/{id}', response_model=UserDTO)(UserController.update_user)
 user_router.delete('/{id}', response_model=ResponseContentDTO)(UserController.delete_user)

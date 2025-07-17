@@ -9,9 +9,12 @@ class UserService:
         existing_id = await user_repository.get_user_id_by_login(credentials.login)
 
         if not existing_id:
-            await user_repository.create_user(credentials)
+            created_user = await user_repository.create_user(credentials)
 
-            return await ResponseUtils.success(DataUtils.responses.user_created_message)
+            return await ResponseUtils.success(
+                DataUtils.responses.user_created_message,
+                UserDTO(**created_user.model_dump()).model_dump()
+            )
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.user_exists_error)
         

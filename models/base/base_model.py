@@ -92,9 +92,6 @@ class BaseModel(SQLModel):
         
         return validate_fields
     
-    def to_dict(self) -> dict:
-        return self.model_dump()
-    
     @classmethod
     def clean_soft_deleted_relations(cls, obj: Union[SQLModel, list[SQLModel]]):
         if isinstance(obj, list):

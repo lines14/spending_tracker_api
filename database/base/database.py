@@ -153,7 +153,7 @@ class Database(DeclarativeBase):
 
             return result.unique().scalars().all()
             
-    async def execute_delete(self, instance, soft_delete: bool):
+    async def bulk_delete(self, instance, soft_delete: bool):
         async with self as db:
             filter_expressions = self.get_filter_expressions(instance)
 
