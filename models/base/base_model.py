@@ -37,25 +37,59 @@ class BaseModel(SQLModel):
     def __tablename__(cls) -> str:
         return re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower() + 's'
 
-    async def create(self):
+    async def create(self) -> None:
         await Database().create(self)
 
-    async def get(self, with_soft_deleted: bool = False):
-        return await Database().get(self, with_soft_deleted)
+    async def validated_get(self, with_soft_deleted: bool = False) -> list[SQLModel]:
+        return await Database().get(type(self), self, with_soft_deleted)
     
-    async def joined_load(self, keys: list[str], with_soft_deleted: bool = False):
-        result = await Database().joined_load(self, keys, with_soft_deleted)
+    async def validated_get_with_joined_load(
+        self, 
+        keys: list[str], 
+        with_soft_deleted: bool = False
+    ) -> list[SQLModel]:
+        result = await Database().get_with_joined_load(self, keys, with_soft_deleted)
 
         if not with_soft_deleted:
             return self.clean_soft_deleted_relations(result)
     
         return result
 
-    async def update(self):
-        return await Database().update(self)
+    async def validated_update(self) -> list[SQLModel]:
+        return await Database().update(
+            type(self),
+            self.model_dump(exclude_unset=True),
+            self.model_dump(exclude_unset=True)
+        )
 
-    async def delete(self, soft_delete: bool):
-        await Database().delete(self, soft_delete)
+    async def validated_delete(self, soft_delete: bool = True) -> None:
+        await Database().delete(type(self), self, soft_delete)
+
+    @classmethod
+    async def get(cls, search_by: dict, with_soft_deleted: bool = False) -> list[SQLModel]:
+        return await Database().get(cls, search_by, with_soft_deleted)
+    
+    @classmethod
+    async def get_with_joined_load(
+        cls, 
+        search_by: dict, 
+        keys: list[str], 
+        with_soft_deleted: bool = False
+    ) -> list[SQLModel]:
+        result = await Database().get_with_joined_load(cls, search_by, keys, with_soft_deleted)
+
+        if not with_soft_deleted:
+            return cls.clean_soft_deleted_relations(result)
+    
+        return result
+
+    @classmethod
+    async def update(cls, search_by: dict, fields_to_update: dict) -> list[SQLModel]:
+        return await Database().update(cls, search_by, fields_to_update)
+    
+    @classmethod
+    async def delete(cls, search_by: dict, soft_delete: bool = True) -> None:
+        await Database().delete(cls, search_by, soft_delete)
 
     @classmethod
     def validate(cls: Type[BaseModel], fields: list[str]):
@@ -95,14 +129,16 @@ class BaseModel(SQLModel):
     @classmethod
     def clean_soft_deleted_relations(cls, obj: Union[SQLModel, list[SQLModel]]):
         if isinstance(obj, list):
-            return [cls.clean_soft_deleted_relations(item) for item in obj if item.deleted_at is None]
+            return [cls.clean_soft_deleted_relations(item) 
+                    for item in obj if item.deleted_at is None]
 
         if not isinstance(obj, SQLModel):
             return obj
 
         for key, value in obj.__dict__.items():
             if isinstance(value, list):
-                cleaned = [val for val in value if isinstance(val, SQLModel) and getattr(val, "deleted_at", None) is None]
+                cleaned = [val for val in value if isinstance(val, SQLModel) 
+                           and getattr(val, "deleted_at", None) is None]
 
                 for item in cleaned:
                     cls.clean_soft_deleted_relations(item)

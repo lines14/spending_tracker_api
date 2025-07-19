@@ -1,5 +1,8 @@
 from config import Config
 from datetime import datetime
+from sqlmodel import SQLModel
+from typing import Type, Union
+from sqlalchemy.sql import and_
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import DeclarativeBase, joinedload
 from sqlalchemy import desc, select, update, delete, inspect
@@ -36,7 +39,7 @@ class Database(DeclarativeBase):
             await connection.run_sync(self.metadata.create_all)
 
     @staticmethod
-    def build_nested_joinedload(model, key: str):
+    def build_nested_joinedload(model: Type[SQLModel], key: str):
         parts = key.split(".")
         loader = joinedload(getattr(model, parts[0]))
         current_model = model.__mapper__.relationships[parts[0]].mapper.class_
@@ -55,54 +58,91 @@ class Database(DeclarativeBase):
         
         return {key: value for key, value in instance_properties.items() if value is not None}
     
-    def get_filter_expressions(self, instance):
+    def get_filter_expressions(self, model: Type[SQLModel], target: Union[dict, SQLModel]):
         filter_expressions = []
-        instance_properties = self.get_not_empty_properties(instance)
+
+        if isinstance(target, dict):
+            instance_properties = target
+        else:
+            instance_properties = self.get_not_empty_properties(target)
 
         if 'id' in instance_properties and instance_properties['id'] is not None:
             value = instance_properties['id']
 
             if isinstance(value, (list, tuple, set)):
-                return [getattr(type(instance), 'id').in_(value)]
+                return [getattr(model, 'id').in_(value)]
             else:
-                return [getattr(type(instance), 'id') == value]
+                return [getattr(model, 'id') == value]
 
         for key, value in instance_properties.items():
             if value is not None:
                 if isinstance(value, (list, tuple, set)):
-                    filter_expressions.append(getattr(type(instance), key).in_(value))
+                    filter_expressions.append(getattr(model, key).in_(value))
                 else:
-                    filter_expressions.append(getattr(type(instance), key) == value)
+                    filter_expressions.append(getattr(model, key) == value)
 
         return filter_expressions
 
-    async def create(self, instance):
+    async def create(self, instance: SQLModel):
         async with self as db:
             async with db.session.begin():
                 db.session.add(instance)
 
             await db.session.refresh(instance)
-            
-    async def update(self, instance):
+
+    async def update(
+        self, 
+        model: Type[SQLModel], 
+        filters: dict, 
+        fields_to_update: dict
+    ) -> list[SQLModel]:
         async with self as db:
-            filter_expressions = self.get_filter_expressions(instance)
+            records = []
+            updated_objects = []
+
+            max_updates = max(len(value) if isinstance(value, list) else 1 
+                              for value in {**filters, **fields_to_update}.values())
+
+            for i in range(max_updates):
+                record_filter = {}
+                record_update = {}
+
+                for key, value in filters.items():
+                    if isinstance(value, list):
+                        record_filter[key] = value[i] if i < len(value) else None
+                    else:
+                        record_filter[key] = value
+
+                for key, value in fields_to_update.items():
+                    if isinstance(value, list):
+                        if i < len(value):
+                            record_update[key] = value[i]
+                    else:
+                        record_update[key] = value
+
+                if all(v is not None for v in record_filter.values()):
+                    records.append((record_filter, record_update))
 
             async with db.session.begin():
-                result = await db.session.execute(
-                    select(type(instance))
-                    .filter(*filter_expressions)
-                )
-                
-                existing_records = result.scalars().all()
+                for record_filter, record_update in records:
+                    filter_expressions = self.get_filter_expressions(model, record_filter)
 
-                if len(existing_records) > 0:                    
+                    result = await db.session.execute(
+                        select(model)
+                        .where(and_(*filter_expressions))
+                    )
+
+                    existing_records = result.scalars().all()
+
                     for existing_record in existing_records:
-                        for key, value in dict(instance).items():
+                        for key, value in record_update.items():
                             setattr(existing_record, key, value)
 
-                return existing_records
+                        updated_objects.append(existing_record)
 
-    async def create_or_update(self, instance):
+            return updated_objects
+
+    async def create_or_update(self, instance: SQLModel):
         async with self as db:
             instance_properties = dict(instance)
             instance_properties['updated_at'] = datetime.utcnow()
@@ -114,70 +154,91 @@ class Database(DeclarativeBase):
                     .on_duplicate_key_update(**instance_properties)
                 )
 
-    async def seed(self, instances):
+    async def seed(self, instances: list[SQLModel]):
         async with self as db:
             for index, instance in enumerate(instances):
                 instance.id = index + 1
                 await db.create_or_update(instance)
 
-    async def get(self, instance, with_soft_deleted: bool):
+    async def get(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        with_soft_deleted: bool
+    ) -> list[SQLModel]:
         async with self as db:
-            filter_expressions = self.get_filter_expressions(instance)
+            filter_expressions = self.get_filter_expressions(model, target)
 
             if not with_soft_deleted:
-                filter_expressions.append(getattr(type(instance), 'deleted_at') == None)
+                filter_expressions.append(getattr(model, 'deleted_at') == None)
 
             result = await db.session.execute(
-                select(type(instance))
-                .filter(*filter_expressions)
-                .order_by(desc(type(instance).id))
+                select(model)
+                .where(and_(*filter_expressions))
+                .order_by(desc(model.id))
             )
 
             return result.scalars().all()
 
-    async def joined_load(self, instance, keys: list[str], with_soft_deleted: bool):
+    async def get_with_joined_load(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        keys: list[str], 
+        with_soft_deleted: bool
+    ) -> list[SQLModel]:
         async with self as db:
-            filter_expressions = self.get_filter_expressions(instance)
+            filter_expressions = self.get_filter_expressions(model, target)
 
             if not with_soft_deleted:
-                filter_expressions.append(getattr(type(instance), 'deleted_at') == None)
+                filter_expressions.append(getattr(model, 'deleted_at') == None)
 
-            options = [self.build_nested_joinedload(type(instance), key) for key in keys]
+            options = [self.build_nested_joinedload(model, key) for key in keys]
 
             result = await db.session.execute(
-                select(type(instance))
+                select(model)
                 .options(*options)
-                .filter(*filter_expressions)
-                .order_by(desc(type(instance).id))
+                .where(and_(*filter_expressions))
+                .order_by(desc(model.id))
             )
 
             return result.unique().scalars().all()
             
-    async def bulk_delete(self, instance, soft_delete: bool):
+    async def execute_delete(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        soft_delete: bool
+    ) -> None:
         async with self as db:
-            filter_expressions = self.get_filter_expressions(instance)
+            filter_expressions = self.get_filter_expressions(model, target)
 
             async with db.session.begin():
                 if soft_delete:
                     await db.session.execute(
-                        update(type(instance))
-                        .filter(*filter_expressions)
+                        update(model)
+                        .where(and_(*filter_expressions))
                         .values(deleted_at=datetime.utcnow())
                     )
                 else:
                     await db.session.execute(
-                        delete(type(instance))
-                        .filter(*filter_expressions)
+                        delete(model)
+                        .where(and_(*filter_expressions))
                     )
 
-    async def delete(self, instance, soft_delete: bool):
+    async def delete(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        soft_delete: bool
+    ) -> None:
         async with self as db:
-            filter_expressions = self.get_filter_expressions(instance)
+            filter_expressions = self.get_filter_expressions(model, target)
 
             async with db.session.begin():
                 result = await db.session.execute(
-                    select(type(instance))
-                    .filter(*filter_expressions)
+                    select(model)
+                    .where(and_(*filter_expressions))
                 )
                 
                 existing_records = result.scalars().all()

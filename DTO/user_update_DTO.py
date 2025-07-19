@@ -25,7 +25,7 @@ class UserUpdateDTO(BaseDTO):
     )
 
     hashed_password: Optional[str] = None
-    deleted_at: Optional[str]
+    deleted_at: Optional[str] = None
 
     @model_validator(mode="after")
     @classmethod
