@@ -18,7 +18,7 @@ class BankAccountService:
             return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
         
     async def get_bank_account(self, request: Request, search_by: dict) -> Response:
-        existing_bank_account = await BankAccountRepository().get_bank_accounts(search_by)
+        existing_bank_account = await BankAccountRepository().get_bank_account(search_by)
 
         if existing_bank_account:
             return await ResponseUtils.success(
@@ -28,7 +28,7 @@ class BankAccountService:
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
         
-    async def get_bank_accounts(self) -> Response:
+    async def get_all_bank_accounts(self) -> Response:
         existing_bank_accounts = await BankAccountRepository().get_all_bank_accounts()
 
         return await ResponseUtils.success(
@@ -38,16 +38,16 @@ class BankAccountService:
 
     async def delete_bank_account(self, request: Request, search_by: dict, soft_delete: bool) -> Response:
         bank_account_repository = BankAccountRepository()
-        existing_bank_account = await bank_account_repository.get_bank_accounts(search_by)
+        existing_bank_account = await bank_account_repository.get_bank_account(search_by)
 
         if existing_bank_account:
-            await bank_account_repository.delete_bank_accounts(search_by, soft_delete)
+            await bank_account_repository.delete_bank_account(search_by, soft_delete)
             
             return await ResponseUtils.success(DataUtils.responses.bank_account_deleted_message.format(id=DataUtils.dict_to_model(search_by).id))
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
         
-    async def delete_bank_accounts(self, soft_delete: bool) -> Response:
+    async def delete_all_bank_accounts(self, soft_delete: bool) -> Response:
         await BankAccountRepository().delete_all_bank_accounts(soft_delete)
             
         return await ResponseUtils.success(DataUtils.responses.bank_accounts_deleted_message)

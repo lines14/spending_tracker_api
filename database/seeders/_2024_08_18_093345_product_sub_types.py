@@ -7,7 +7,7 @@ class ProductSubTypes(BaseSeeder):
 
     def __init__(self):
         async def seed():
-            product_types = await ProductType().validated_get()
+            product_types = await ProductType().get()
 
             data_list = [
                 ProductSubType(

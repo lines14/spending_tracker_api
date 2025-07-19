@@ -24,7 +24,7 @@ class CurrencyRatesUpdaterSchedule(BaseSeeder):
 
             currency_rates.append(currency_rate)
 
-        currencies = await Currency().validated_get()
+        currencies = await Currency().get()
         currency_titles = list(map(lambda currency: currency.currency, currencies))
 
         currency_rates = list(filter(

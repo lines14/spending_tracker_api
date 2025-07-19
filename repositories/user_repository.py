@@ -51,7 +51,7 @@ class UserRepository:
             else:
                 await delete_from_cache(id)
 
-        await User.delete(search_by, soft_delete)
+        await User.bulk_delete(search_by, soft_delete)
 
     async def update_users(
         self, 
@@ -72,7 +72,7 @@ class UserRepository:
 
             del user['password']
 
-        result = await User.update(search_by, user)
+        result = await User.bulk_update(search_by, user)
 
         if not result:
             return None
@@ -118,7 +118,7 @@ class UserRepository:
                     uncached_ids.append(user_id)
 
             if uncached_ids:
-                result = await User.get({"id": uncached_ids}, with_soft_deleted)
+                result = await User.bulk_get({"id": uncached_ids}, with_soft_deleted)
 
                 if not result:
                     return None
@@ -140,7 +140,7 @@ class UserRepository:
                         else UserDTO(**json.loads(stringified_users_list[0]))
 
         else:
-            result = await User.get(search_by, with_soft_deleted)
+            result = await User.bulk_get(search_by, with_soft_deleted)
 
             if not result:
                 return None
@@ -154,7 +154,7 @@ class UserRepository:
         user_id = await redis_client.get(login)
 
         if not user_id:
-            result = await User(login=login).validated_get()
+            result = await User(login=login).get()
 
             if not result:
                 return None
@@ -192,11 +192,14 @@ class UserRepository:
                     uncached_ids.append(user_id)
 
             if uncached_ids:
-                result = await User.get_with_joined_load(
+                result = await User.bulk_get_with_joined_load(
                     {"id": uncached_ids}, 
                     ["bank_accounts", "bank_accounts.purchases"]
                 )
 
+                if not result:
+                    return None
+                
                 for user in result:
                     stringified_user = json.dumps(User.nested_models_to_dict(user), default=str)
                     stringified_users_list.append(stringified_user)
@@ -214,7 +217,7 @@ class UserRepository:
                         else UserDTO(**json.loads(stringified_users_list[0]))
 
         else:
-            result = await User.get_with_joined_load(
+            result = await User.bulk_get_with_joined_load(
                 search_by, 
                 ["bank_accounts", "bank_accounts.purchases"]
             )

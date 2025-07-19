@@ -7,7 +7,7 @@ class PurchaseRepository:
     async def create_purchase(self, purchase: PurchaseDTO) -> None:
         await Purchase(**purchase.model_dump()).create()
 
-    async def get_purchases(self, search_by: dict) -> Optional[PurchaseDTO]:
+    async def get_purchase(self, search_by: dict) -> Optional[PurchaseDTO]:
         result = await Purchase(**search_by).get()
 
         if not result:
@@ -18,5 +18,5 @@ class PurchaseRepository:
 
         return PurchaseDTO(**json.loads(stringified_purchase))
 
-    async def delete_purchases(self, search_by: dict, soft_delete: bool) -> None:
+    async def delete_purchase(self, search_by: dict, soft_delete: bool) -> None:
         await Purchase(**search_by).delete(soft_delete)

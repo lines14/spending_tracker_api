@@ -22,7 +22,7 @@ class BankAccountRepository:
 
         await redis_client.set(**data.model_dump())
 
-    async def get_bank_accounts(self, search_by: dict) -> Optional[BankAccountDTO]:
+    async def get_bank_account(self, search_by: dict) -> Optional[BankAccountDTO]:
         redis_client = RedisClient()
         name = redis_client.create_key('bank_account', DataUtils.dict_to_model(search_by).id)
         stringified_bank_account = await redis_client.get(name)
@@ -64,7 +64,7 @@ class BankAccountRepository:
 
         return [BankAccountDTO(**item) for item in json.loads(stringified_bank_accounts)]
 
-    async def delete_bank_accounts(self, search_by: dict, soft_delete: bool) -> None:
+    async def delete_bank_account(self, search_by: dict, soft_delete: bool) -> None:
         if 'id' in search_by:
             redis_client = RedisClient()
             name = redis_client.create_key('bank_account', DataUtils.dict_to_model(search_by).id)

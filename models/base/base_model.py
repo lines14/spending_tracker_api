@@ -40,10 +40,10 @@ class BaseModel(SQLModel):
     async def create(self) -> None:
         await Database().create(self)
 
-    async def validated_get(self, with_soft_deleted: bool = False) -> list[SQLModel]:
+    async def get(self, with_soft_deleted: bool = False) -> list[SQLModel]:
         return await Database().get(type(self), self, with_soft_deleted)
     
-    async def validated_get_with_joined_load(
+    async def get_with_joined_load(
         self, 
         keys: list[str], 
         with_soft_deleted: bool = False
@@ -55,22 +55,22 @@ class BaseModel(SQLModel):
     
         return result
 
-    async def validated_update(self) -> list[SQLModel]:
+    async def update(self) -> list[SQLModel]:
         return await Database().update(
             type(self),
             self.model_dump(exclude_unset=True),
             self.model_dump(exclude_unset=True)
         )
 
-    async def validated_delete(self, soft_delete: bool = True) -> None:
+    async def delete(self, soft_delete: bool = True) -> None:
         await Database().delete(type(self), self, soft_delete)
 
     @classmethod
-    async def get(cls, search_by: dict, with_soft_deleted: bool = False) -> list[SQLModel]:
+    async def bulk_get(cls, search_by: dict, with_soft_deleted: bool = False) -> list[SQLModel]:
         return await Database().get(cls, search_by, with_soft_deleted)
     
     @classmethod
-    async def get_with_joined_load(
+    async def bulk_get_with_joined_load(
         cls, 
         search_by: dict, 
         keys: list[str], 
@@ -84,11 +84,11 @@ class BaseModel(SQLModel):
         return result
 
     @classmethod
-    async def update(cls, search_by: dict, fields_to_update: dict) -> list[SQLModel]:
+    async def bulk_update(cls, search_by: dict, fields_to_update: dict) -> list[SQLModel]:
         return await Database().update(cls, search_by, fields_to_update)
     
     @classmethod
-    async def delete(cls, search_by: dict, soft_delete: bool = True) -> None:
+    async def bulk_delete(cls, search_by: dict, soft_delete: bool = True) -> None:
         await Database().delete(cls, search_by, soft_delete)
 
     @classmethod
