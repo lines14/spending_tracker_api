@@ -173,7 +173,8 @@ class UserRepository:
 
     async def get_users_with_relations(
         self, 
-        search_by: dict
+        search_by: dict,
+        with_soft_deleted: bool = False
     ) -> Optional[Union[UserDTO, list[UserDTO]]]:
         stringified_users_list = []
         redis_client = RedisClient()
@@ -194,7 +195,8 @@ class UserRepository:
             if uncached_ids:
                 result = await User.bulk_get_with_joined_load(
                     {"id": uncached_ids}, 
-                    ["bank_accounts", "bank_accounts.purchases"]
+                    ["bank_accounts", "bank_accounts.purchases"],
+                    with_soft_deleted
                 )
 
                 if not result:
@@ -219,7 +221,8 @@ class UserRepository:
         else:
             result = await User.bulk_get_with_joined_load(
                 search_by, 
-                ["bank_accounts", "bank_accounts.purchases"]
+                ["bank_accounts", "bank_accounts.purchases"],
+                with_soft_deleted
             )
 
             if not result:
