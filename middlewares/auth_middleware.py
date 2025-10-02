@@ -21,7 +21,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             try:
                 request_token = auth_header.split(" ")[1]
                 payload = JWTDTO(**JWTUtils.verify_token(request_token))
-                session = await SessionRepository().get_session(payload.id)
+                sessio = await SessionRepository().get_session(payload.id)
 
                 if not session:
                     return await ResponseUtils.error(request, *DataUtils.responses.session_expired_error)
