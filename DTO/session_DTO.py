@@ -1,5 +1,5 @@
 from typing import Optional
-from DTO.base import BaseDTO
+from dto.base import BaseDTO
 
 class SessionDTO(BaseDTO):
     id: int

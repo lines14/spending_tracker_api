@@ -1,5 +1,5 @@
 from pydantic import Field
-from DTO.base import BaseDTO
+from dto.base import BaseDTO
 
 class ResponseDTO(BaseDTO):
     status_code: int

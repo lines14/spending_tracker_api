@@ -1,6 +1,6 @@
 import asyncio
 from models import Currency
-from database.seeders.base.base_seeder import BaseSeeder
+from db.seeders.base.base_seeder import BaseSeeder
 
 class Currencies(BaseSeeder):
     revision: str = '_2024_08_18_103405'

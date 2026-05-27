@@ -1,7 +1,7 @@
 from typing import Optional
 from typing import Annotated
 from services import UserService
-from DTO import CredentialsDTO, UserUpdateDTO
+from dto import CredentialsDTO, UserUpdateDTO
 from fastapi import Request, Response, Path, Body
 
 class UserController:

@@ -1,5 +1,5 @@
 from typing import Union
-from DTO.base import BaseDTO
+from dto.base import BaseDTO
 from pydantic import StrictBool
 
 class ResponseContentDTO(BaseDTO):

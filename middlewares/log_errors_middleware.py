@@ -5,7 +5,7 @@ from models import ErrorLog
 from fastapi import Request, Response
 from utils import Logger, ResponseUtils, DataUtils
 from starlette.middleware.base import BaseHTTPMiddleware
-from DTO import StackElementDTO, ErrorInfoDTO, ReceiveDTO
+from dto import StackElementDTO, ErrorInfoDTO, ReceiveDTO
 
 class LogErrorsMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):

@@ -3,7 +3,7 @@ from models import User
 from typing import Optional, Union
 from utils import CryptographyUtils, DataUtils
 from repositories.base.redis_client import RedisClient
-from DTO import RedisSetRequestDTO, CredentialsDTO, UserDTO
+from dto import RedisSetRequestDTO, CredentialsDTO, UserDTO
 from repositories.session_repository import SessionRepository
 
 class UserRepository:    

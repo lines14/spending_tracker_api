@@ -3,7 +3,7 @@ from os import getenv
 from models import Session
 from typing import Optional
 from utils import CryptographyUtils
-from DTO import RedisSetexRequestDTO, SessionDTO
+from dto import RedisSetexRequestDTO, SessionDTO
 from repositories.base.redis_client import RedisClient
 
 class SessionRepository:    

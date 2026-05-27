@@ -1,6 +1,6 @@
 import asyncio
 from models import BankAccountIssuer
-from database.seeders.base.base_seeder import BaseSeeder
+from db.seeders.base.base_seeder import BaseSeeder
 
 class BankAccountIssuers(BaseSeeder):
     revision: str = '_2024_09_15_124327'

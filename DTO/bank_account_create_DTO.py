@@ -1,7 +1,7 @@
 from typing import ClassVar
 from utils.data_utils import DataUtils
 from pydantic import Field, model_validator
-from DTO.base import BaseDTO, IntegerValidator, StringValidator
+from dto.base import BaseDTO, IntegerValidator, StringValidator
 
 class BankAccountCreateDTO(BaseDTO):
     account_min_length: ClassVar[int] = 4

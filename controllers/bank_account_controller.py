@@ -1,5 +1,5 @@
 from typing import Optional
-from DTO import BankAccountCreateDTO
+from dto import BankAccountCreateDTO
 from fastapi import Request, Response
 from services import BankAccountService
 

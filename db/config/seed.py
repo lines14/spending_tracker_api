@@ -1,9 +1,9 @@
 import os
 import sys
 import inspect
+from db.seeders import *
 sys.path.append(os.getcwd())
 from dotenv import load_dotenv
-from database.seeders import *
 
 load_dotenv()
 

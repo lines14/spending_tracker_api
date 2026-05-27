@@ -1,4 +1,4 @@
-from DTO import CredentialsDTO
+from dto import CredentialsDTO
 from fastapi import Request, Response
 from repositories.user_repository import UserRepository
 from repositories.session_repository import SessionRepository

@@ -1,5 +1,5 @@
 from fastapi import Request
-from DTO.base import BaseDTO
+from dto.base import BaseDTO
 
 class ResponseTemplateContextDTO(BaseDTO):
     request: Request

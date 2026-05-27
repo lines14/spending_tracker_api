@@ -1,7 +1,7 @@
 from fastapi import Response, Request
 from models import Purchase, BankAccount
 from utils import DataUtils, ResponseUtils
-from DTO import PurchaseDTO, PurchaseCreateDTO
+from dto import PurchaseDTO, PurchaseCreateDTO
 from repositories.purchase_repository import PurchaseRepository
 from repositories.bank_account_repository import BankAccountRepository
 

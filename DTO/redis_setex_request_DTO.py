@@ -1,4 +1,4 @@
-from DTO.base import BaseDTO
+from dto.base import BaseDTO
 
 class RedisSetexRequestDTO(BaseDTO):
     name: str

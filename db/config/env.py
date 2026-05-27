@@ -28,10 +28,12 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 
 from models import *
+from sqlmodel import SQLModel
 from utils.logger import Logger
-from database.base.database import Database
+# from db.db import DB
 
-target_metadata = Database.metadata
+target_metadata = SQLModel.metadata
+# target_metadata = DB.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

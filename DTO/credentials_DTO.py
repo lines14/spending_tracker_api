@@ -1,7 +1,7 @@
 from typing import ClassVar
 from utils.data_utils import DataUtils
 from pydantic import Field, model_validator
-from DTO.base import BaseDTO, StringValidator
+from dto.base import BaseDTO, StringValidator
 
 class CredentialsDTO(BaseDTO):
     max_length: ClassVar[int] = 20

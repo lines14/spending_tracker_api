@@ -3,9 +3,9 @@ import sys
 sys.path.append(os.getcwd())
 from dotenv import load_dotenv
 import xml.etree.ElementTree as ET
-from DTO import CurrencyRateResponseDTO
+from dto import CurrencyRateResponseDTO
 from models import Currency, CurrencyRate
-from database.seeders.base.base_seeder import BaseSeeder
+from db.seeders.base.base_seeder import BaseSeeder
 from repositories.currencies_repository import CurrenciesRepository
 
 load_dotenv()

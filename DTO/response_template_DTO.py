@@ -1,7 +1,7 @@
 from typing import Any
 from pydantic import Field
-from DTO.base import BaseDTO
-from DTO.response_template_context_DTO import ResponseTemplateContextDTO
+from dto.base import BaseDTO
+from dto.response_template_context_dto import ResponseTemplateContextDTO
 
 class ResponseTemplateDTO(BaseDTO):
     status_code: int

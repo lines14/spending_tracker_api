@@ -1,7 +1,7 @@
 from os import getenv
 from datetime import datetime
-from DTO import CurrencyRateRequestDTO
-from repositories.base.HTTP_client import HTTPClient
+from dto import CurrencyRateRequestDTO
+from repositories.base.http_client import HTTPClient
 
 class CurrenciesRepository(HTTPClient):
     def __init__(self):

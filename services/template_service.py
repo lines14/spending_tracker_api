@@ -1,7 +1,7 @@
 from sys import version
 from fastapi.templating import Jinja2Templates
 from fastapi import Request, Response, __version__
-from DTO import ResponseTemplateDTO, ResponseTemplateContextDTO
+from dto import ResponseTemplateDTO, ResponseTemplateContextDTO
 
 class TemplateService:
     async def get_template(self, request: Request) -> Response:

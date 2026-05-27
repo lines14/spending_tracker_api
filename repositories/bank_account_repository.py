@@ -2,7 +2,7 @@ import json
 from utils import DataUtils
 from typing import Optional
 from models import BankAccount
-from DTO import BankAccountDTO, RedisSetRequestDTO
+from dto import BankAccountDTO, RedisSetRequestDTO
 from repositories.base.redis_client import RedisClient
 
 class BankAccountRepository:    

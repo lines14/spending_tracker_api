@@ -1,7 +1,7 @@
 import jwt
 import json
 from os import getenv
-from DTO import JWTDTO
+from dto import JWTDTO
 from utils.data_utils import DataUtils
 from datetime import datetime, timedelta
 from utils.storage_utils import StorageUtils

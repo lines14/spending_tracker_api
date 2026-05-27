@@ -1,5 +1,5 @@
 from typing import Optional
-from DTO import PurchaseCreateDTO
+from dto import PurchaseCreateDTO
 from services import PurchaseService
 from fastapi import Request, Response
 

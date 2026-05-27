@@ -3,4 +3,5 @@ Purchases spending tracker based on FastAPI with SQLAlchemy, Alembic, Pydantic a
 After start do inside container:  
 source ~/.bashrc,  
 migrate,  
-seed all
+seed all,
+currencies:update

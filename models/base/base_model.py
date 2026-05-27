@@ -1,4 +1,5 @@
 import re
+from db.db import DB
 from typing import Optional
 from sqlalchemy import func
 from pydantic import ConfigDict
@@ -6,7 +7,6 @@ from typing import Type, Union, Any
 from datetime import datetime, timezone
 from sqlalchemy.orm import declared_attr
 from fastapi import HTTPException, Request
-from database.base.database import Database
 from fastapi.exceptions import HTTPException
 from sqlmodel import SQLModel, TIMESTAMP, Field
 from pydantic import BaseModel, ValidationError, create_model
@@ -45,17 +45,17 @@ class BaseModel(SQLModel):
         return re.sub(r'(?<!^)(?=[A-Z])', '_', cls.__name__).lower() + 's'
 
     async def create(self) -> None:
-        await Database().create(self)
+        await DB().create(self)
 
     async def get(self, with_soft_deleted: bool = False) -> list[SQLModel]:
-        return await Database().get(type(self), self, with_soft_deleted)
+        return await DB().get(type(self), self, with_soft_deleted)
     
     async def get_with_joined_load(
         self, 
         keys: list[str], 
         with_soft_deleted: bool = False
     ) -> list[SQLModel]:
-        result = await Database().get_with_joined_load(self, keys, with_soft_deleted)
+        result = await DB().get_with_joined_load(self, keys, with_soft_deleted)
 
         if not with_soft_deleted:
             return self.clean_soft_deleted_relations(result)
@@ -63,18 +63,18 @@ class BaseModel(SQLModel):
         return result
 
     async def update(self) -> list[SQLModel]:
-        return await Database().update(
+        return await DB().update(
             type(self),
             self.model_dump(exclude_unset=True),
             self.model_dump(exclude_unset=True)
         )
 
     async def delete(self, soft_delete: bool = True) -> None:
-        await Database().delete(type(self), self, soft_delete)
+        await DB().delete(type(self), self, soft_delete)
 
     @classmethod
     async def bulk_get(cls, search_by: dict, with_soft_deleted: bool = False) -> list[SQLModel]:
-        return await Database().get(cls, search_by, with_soft_deleted)
+        return await DB().get(cls, search_by, with_soft_deleted)
     
     @classmethod
     async def bulk_get_with_joined_load(
@@ -83,7 +83,7 @@ class BaseModel(SQLModel):
         keys: list[str], 
         with_soft_deleted: bool = False
     ) -> list[SQLModel]:
-        result = await Database().get_with_joined_load(cls, search_by, keys, with_soft_deleted)
+        result = await DB().get_with_joined_load(cls, search_by, keys, with_soft_deleted)
 
         if not with_soft_deleted:
             return cls.clean_soft_deleted_relations(result)
@@ -92,11 +92,11 @@ class BaseModel(SQLModel):
 
     @classmethod
     async def bulk_update(cls, search_by: dict, fields_to_update: dict) -> list[SQLModel]:
-        return await Database().update(cls, search_by, fields_to_update)
+        return await DB().update(cls, search_by, fields_to_update)
     
     @classmethod
     async def bulk_delete(cls, search_by: dict, soft_delete: bool = True) -> None:
-        await Database().delete(cls, search_by, soft_delete)
+        await DB().delete(cls, search_by, soft_delete)
 
     @classmethod
     def validate(cls: Type[BaseModel], fields: list[str]):

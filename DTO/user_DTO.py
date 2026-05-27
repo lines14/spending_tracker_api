@@ -1,7 +1,7 @@
 from pydantic import Field
 from typing import Optional
-from DTO.base import BaseDTO
-from DTO.bank_account_DTO import BankAccountDTO
+from dto.base import BaseDTO
+from dto.bank_account_dto import BankAccountDTO
 
 class UserDTO(BaseDTO):
     id: int

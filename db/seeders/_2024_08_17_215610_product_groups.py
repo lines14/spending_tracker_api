@@ -1,6 +1,6 @@
 import asyncio
 from models import ProductGroup
-from database.seeders.base.base_seeder import BaseSeeder
+from db.seeders.base.base_seeder import BaseSeeder
 
 class ProductGroups(BaseSeeder):
     revision: str = '_2024_08_17_215610'

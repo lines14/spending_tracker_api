@@ -1,11 +1,11 @@
-from database.base.database import Database
+from db.db import DB
 
 class BaseSeeder:
     async def seed(self, data_list):
-        database = Database()
-        await database.init_tables()
-        await database.seed(data_list)
-        await database.dispose_engine()
+        db = DB()
+        await db.init_tables()
+        await db.seed(data_list)
+        await db.dispose_engine()
 
     @classmethod
     def get_related(cls, instances, **conditions):

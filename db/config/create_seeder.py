@@ -15,7 +15,7 @@ else:
     print(f'  Generating /app/database/seeders/{version}_{file_name}.py ...  done')
 
     content = f"""import asyncio
-from database.seeders.base.base_seeder import BaseSeeder\n
+from db.seeders.base.base_seeder import BaseSeeder\n
 class {class_name}(BaseSeeder):
     revision: str = '{version}'\n
     def __init__(self):

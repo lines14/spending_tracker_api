@@ -1,7 +1,7 @@
 from models import BankAccount, User
 from fastapi import Request, Response
 from utils import DataUtils, ResponseUtils
-from DTO import BankAccountDTO, BankAccountCreateDTO
+from dto import BankAccountDTO, BankAccountCreateDTO
 from repositories.user_repository import UserRepository
 from repositories.bank_account_repository import BankAccountRepository
 

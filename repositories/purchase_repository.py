@@ -1,5 +1,5 @@
 import json
-from DTO import PurchaseDTO
+from dto import PurchaseDTO
 from typing import Optional
 from models import Purchase
 

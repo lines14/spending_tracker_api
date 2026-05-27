@@ -1,7 +1,7 @@
 from typing import ClassVar
 from utils.data_utils import DataUtils
 from pydantic import Field, model_validator
-from DTO.base import BaseDTO, FloatValidator, IntegerValidator
+from dto.base import BaseDTO, FloatValidator, IntegerValidator
 
 class PurchaseCreateDTO(BaseDTO):
     cost_min_value: ClassVar[int] = 0.01

@@ -1,4 +1,4 @@
-from DTO import JWTDTO
+from dto import JWTDTO
 from config import Config
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware

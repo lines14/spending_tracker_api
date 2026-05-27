@@ -1,5 +1,5 @@
 from typing import Optional
-from DTO.purchase_create_DTO import PurchaseCreateDTO
+from dto.purchase_create_dto import PurchaseCreateDTO
 
 class PurchaseDTO(PurchaseCreateDTO):
     id: int

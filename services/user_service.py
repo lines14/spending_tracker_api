@@ -1,6 +1,6 @@
 from fastapi import Response, Request
 from utils import DataUtils, ResponseUtils
-from DTO import CredentialsDTO, UserDTO, UserUpdateDTO
+from dto import CredentialsDTO, UserDTO, UserUpdateDTO
 from repositories.user_repository import UserRepository
 
 class UserService:

@@ -1,4 +1,4 @@
-from DTO import CredentialsDTO
+from dto import CredentialsDTO
 from services import AuthService
 from fastapi import Request, Response
 

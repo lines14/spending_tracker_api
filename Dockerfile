@@ -24,9 +24,9 @@ USER myuser
 RUN echo "migrate() { if [ -n \"\$1\" ]; then alembic upgrade +\$1; else alembic upgrade head; fi; }" >> ~/.bashrc
 RUN echo "downgrade() { if [ -n \"\$1\" ]; then alembic downgrade -\$1; else alembic downgrade base; fi; }" >> ~/.bashrc
 RUN echo "alias migrate:fresh='alembic downgrade base && alembic upgrade head'" >> ~/.bashrc
-RUN echo "alias seed='python database/config/seed.py'" >> ~/.bashrc
-RUN echo "alias migration='python database/config/create_migration.py'" >> ~/.bashrc
-RUN echo "alias seeder='python database/config/create_seeder.py'" >> ~/.bashrc
+RUN echo "alias seed='python -m db.config.seed'" >> ~/.bashrc
+RUN echo "alias migration='python -m db.config.create_migration'" >> ~/.bashrc
+RUN echo "alias seeder='python -m db.config.create_seeder'" >> ~/.bashrc
 
 RUN echo 'alias currencies:update="python -c \"import asyncio; \
 from scheduler.currency_rates_updater_schedule import CurrencyRatesUpdaterSchedule; \
