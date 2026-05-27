@@ -6,6 +6,8 @@ class Currencies(BaseSeeder):
     revision: str = '_2024_08_18_103405'
 
     def __init__(self):
+        super().__init__(Currency)
+
         async def seed():
             data_list = [
                 Currency(currency='KZT'),

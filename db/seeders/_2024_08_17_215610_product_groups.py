@@ -6,6 +6,8 @@ class ProductGroups(BaseSeeder):
     revision: str = '_2024_08_17_215610'
 
     def __init__(self):
+        super().__init__(ProductGroup)
+        
         async def seed():
             data_list = [
                 ProductGroup(group='Продукты'),

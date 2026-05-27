@@ -6,11 +6,15 @@ import xml.etree.ElementTree as ET
 from dto import CurrencyRateResponseDTO
 from models import Currency, CurrencyRate
 from db.seeders.base.base_seeder import BaseSeeder
+from repositories.base.base_repository import BaseRepository
 from repositories.currencies_repository import CurrenciesRepository
 
 load_dotenv()
 
 class CurrencyRatesUpdaterSchedule(BaseSeeder):
+    def __init__(self):
+        super().__init__(CurrencyRate)
+
     async def update_currency_rates(self) -> None:
         currency_rates = []
         response = await CurrenciesRepository().get_rates()
@@ -24,7 +28,9 @@ class CurrencyRatesUpdaterSchedule(BaseSeeder):
 
             currency_rates.append(currency_rate)
 
-        currencies = await Currency().get()
+        currency_repository = BaseRepository(Currency)
+        currencies = await currency_repository.get_all()
+
         currency_titles = list(map(lambda currency: currency.currency, currencies))
 
         currency_rates = list(filter(

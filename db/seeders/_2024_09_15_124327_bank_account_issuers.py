@@ -6,6 +6,8 @@ class BankAccountIssuers(BaseSeeder):
     revision: str = '_2024_09_15_124327'
 
     def __init__(self):
+        super().__init__(BankAccountIssuer)
+
         async def seed():
             data_list = [
                 BankAccountIssuer(issuer='Kaspi', country_code='KAZ'),

@@ -15,12 +15,15 @@ else:
     print(f'  Generating /app/db/seeders/{version}_{file_name}.py ...  done')
 
     content = f"""import asyncio
-from db.seeders.base.base_seeder import BaseSeeder\n
+from db.seeders.base.base_seeder import BaseSeeder
+from repositories.base.base_repository import BaseRepository\n
 class {class_name}(BaseSeeder):
     revision: str = '{version}'\n
     def __init__(self):
+        # Initialize in superconstructor your seeder model
         async def seed():
-            # Add your list of related instances here
+            # Add your repositories with related instances here
+            # Get your list of related instances from repositories here
             data_list = [
                 # Add your seed data here
             ]

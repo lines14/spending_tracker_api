@@ -1,13 +1,17 @@
 import asyncio
 from models import ProductType, ProductSubType
 from db.seeders.base.base_seeder import BaseSeeder
+from repositories.base.base_repository import BaseRepository
 
 class ProductSubTypes(BaseSeeder):
     revision: str = '_2024_08_18_093345'
 
     def __init__(self):
+        super().__init__(ProductSubType)
+
         async def seed():
-            product_types = await ProductType().get()
+            product_type_repository = BaseRepository(ProductType)
+            product_types = await product_type_repository.get_all()
 
             data_list = [
                 ProductSubType(
