@@ -22,8 +22,8 @@ class UserService:
     async def get_user(self, request: Request, search_by: dict, with_relations: bool) -> Response:
         user_repository = UserRepository()
 
-        existing_user = (await user_repository.get_users_with_relations(search_by) 
-                         if with_relations else await user_repository.get_users(search_by))
+        existing_user = (await user_repository.get_user_with_relations(search_by) 
+                         if with_relations else await user_repository.get_user(search_by))
 
         if not existing_user:
             return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
@@ -36,12 +36,12 @@ class UserService:
     async def update_user(self, request: Request, search_by: dict, user: UserUpdateDTO) -> Response:
         user_repository = UserRepository()
 
-        existing_user = await user_repository.get_users(search_by, with_soft_deleted=True)
+        existing_user = await user_repository.get_user(search_by, with_soft_deleted=True)
 
         if not existing_user:
             return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
 
-        updated_user = await user_repository.update_users(
+        updated_user = await user_repository.update_user(
             search_by, 
             user.model_dump(exclude_unset=True)
         )
@@ -54,10 +54,10 @@ class UserService:
     async def delete_user(self, request: Request, search_by: dict, soft_delete: bool) -> Response:
         user_repository = UserRepository()
 
-        existing_user = await user_repository.get_users(search_by)
+        existing_user = await user_repository.get_user(search_by)
 
         if existing_user:
-            await user_repository.delete_users(search_by, soft_delete)
+            await user_repository.delete_user(search_by, soft_delete)
             
             return await ResponseUtils.success(
                 DataUtils.responses.user_deleted_message.format(id=DataUtils.dict_to_model(search_by).id)

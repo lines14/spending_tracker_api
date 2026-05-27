@@ -64,3 +64,12 @@ class DataUtils():
             return {}
 
         return {foreign_field: parent_id}
+    
+    @staticmethod
+    def filter_search_fields(search_by: dict, model) -> dict:
+        service_keys = {'relations', 'keys', 'with_soft_deleted', 'soft_delete'}
+        
+        return {
+            key: value for key, value in search_by.items() 
+            if key in model.model_fields or key in service_keys
+        }

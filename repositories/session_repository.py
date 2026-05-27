@@ -5,29 +5,33 @@ from typing import Optional
 from utils import CryptographyUtils
 from dto import RedisSetexRequestDTO, SessionDTO
 from repositories.base.redis_client import RedisClient
+from repositories.base.base_repository import BaseRepository
 
-class SessionRepository:    
+class SessionRepository(BaseRepository):    
+    def __init__(self):
+        super().__init__(model=Session)
+
     async def create_session(self, user_id: int, token: str, headers: dict) -> None:
         redis_client = RedisClient()
 
         hashed_token = CryptographyUtils.hash_string(token)
 
-        new_session = Session(
+        session = self.model(
             user_id=user_id, 
             token=hashed_token,
             host=headers.get('host'),
             user_agent=headers.get('user-agent')
         )
 
-        await new_session.create()
+        await self.create(session)
 
-        name = redis_client.create_key('session', new_session.user_id)
-        new_stringified_session = json.dumps(new_session.model_dump(), default=str)
+        name = redis_client.create_key('session', session.user_id)
+        stringified_session = json.dumps(session.model_dump(), default=str)
 
         data = RedisSetexRequestDTO(
             name=name,
             time=getenv('TOKEN_TTL'), 
-            value=new_stringified_session
+            value=stringified_session
         )
 
         await redis_client.setex(**data.model_dump())

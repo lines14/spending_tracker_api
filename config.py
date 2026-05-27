@@ -37,5 +37,6 @@ class Config(BaseSettings):
             "/user", 
             "/greetings", 
             "/purchase", 
-            "/bank_account"
+            "/bank_account",
+            "/clear-cache"
         ]

@@ -1,10 +1,11 @@
-from db.db import DB
+from db.base.base_db import BaseDB
+from repositories.base.base_repository import BaseRepository
 
 class BaseSeeder:
     async def seed(self, data_list):
-        db = DB()
+        db = BaseDB()
         await db.init_tables()
-        await db.seed(data_list)
+        await BaseRepository.seed(data_list)
         await db.dispose_engine()
 
     @classmethod

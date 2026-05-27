@@ -4,37 +4,30 @@ from typing import Optional
 from models import BankAccount
 from dto import BankAccountDTO, RedisSetRequestDTO
 from repositories.base.redis_client import RedisClient
+from repositories.base.base_repository import BaseRepository
 
-class BankAccountRepository:    
-    async def create_bank_account(self, bank_account: BankAccountDTO) -> None:
-        redis_client = RedisClient()
+class BankAccountRepository(BaseRepository):   
+    def __init__(self):
+        super().__init__(model=BankAccount)
 
-        new_bank_account = BankAccount(**bank_account.model_dump())
-        await new_bank_account.create()
-
-        name = redis_client.create_key('bank_account', new_bank_account.id)
-        new_stringified_bank_account = json.dumps(new_bank_account.model_dump(), default=str)
-
-        data = RedisSetRequestDTO(
-            name=name, 
-            value=new_stringified_bank_account
-        )
-
-        await redis_client.set(**data.model_dump())
+    async def create_bank_account(self, bank_account_dto: BankAccountDTO) -> None:
+        bank_account = self.model(**bank_account_dto.model_dump())
+        await self.create(bank_account)
 
     async def get_bank_account(self, search_by: dict) -> Optional[BankAccountDTO]:
         redis_client = RedisClient()
+
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
         name = redis_client.create_key('bank_account', DataUtils.dict_to_model(search_by).id)
         stringified_bank_account = await redis_client.get(name)
 
         if not stringified_bank_account:
-            result = await BankAccount(**search_by).get()
+            result = await self.get_one_or_none(search_by)
 
             if not result:
                 return None
 
-            bank_account = result.pop()
-            stringified_bank_account = json.dumps(bank_account.model_dump(), default=str)
+            stringified_bank_account = json.dumps(result.model_dump(), default=str)
 
             data = RedisSetRequestDTO(
                 name=name, 
@@ -51,7 +44,7 @@ class BankAccountRepository:
         stringified_bank_accounts = await redis_client.get(name)
 
         if not stringified_bank_accounts:
-            result = await BankAccount().get()
+            result = await self.get_all()
         
             stringified_bank_accounts = json.dumps(BankAccount.nested_models_to_dict(result), default=str)
 
@@ -65,16 +58,18 @@ class BankAccountRepository:
         return [BankAccountDTO(**item) for item in json.loads(stringified_bank_accounts)]
 
     async def delete_bank_account(self, search_by: dict, soft_delete: bool) -> None:
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
+
         if 'id' in search_by:
             redis_client = RedisClient()
             name = redis_client.create_key('bank_account', DataUtils.dict_to_model(search_by).id)
             await redis_client.delete(name)
 
-        await BankAccount(**search_by).delete(soft_delete)
+        await self.delete(soft_delete, search_by)
 
     async def delete_all_bank_accounts(self, soft_delete: bool) -> None:
         redis_client = RedisClient()
         name = redis_client.create_key('bank_accounts')
         await redis_client.delete(name)
         
-        await BankAccount().delete(soft_delete)
+        await self.delete(soft_delete)

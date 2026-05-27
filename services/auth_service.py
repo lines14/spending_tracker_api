@@ -12,7 +12,7 @@ class AuthService:
         if not id:
             return await ResponseUtils.error(request, *DataUtils.responses.invalid_credentials_error)
         
-        existing_user = await user_repository.get_users(locals())
+        existing_user = await user_repository.get_user(locals())
 
         if existing_user and CryptographyUtils.verify_string(credentials.password, existing_user.hashed_password):
             token = JWTUtils.generate_token(id)

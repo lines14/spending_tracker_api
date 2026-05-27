@@ -4,6 +4,7 @@ from models import ErrorLog
 from fastapi import Response
 from dto.response_dto import ResponseDTO
 from dto.response_content_dto import ResponseContentDTO
+from repositories.base.base_repository import BaseRepository
 
 class ResponseUtils:
     @staticmethod
@@ -61,6 +62,7 @@ class ResponseUtils:
                 message=msg
             )
             
-            await error_log.create()
+            error_log_repository = BaseRepository(model=ErrorLog)
+            await error_log_repository.create(error_log)
 
         return Response(**response.model_dump())

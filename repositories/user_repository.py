@@ -1,35 +1,31 @@
 import json
 from models import User
-from typing import Optional, Union
+from typing import Optional
 from utils import CryptographyUtils, DataUtils
 from repositories.base.redis_client import RedisClient
 from dto import RedisSetRequestDTO, CredentialsDTO, UserDTO
+from repositories.base.base_repository import BaseRepository
 from repositories.session_repository import SessionRepository
 
-class UserRepository:    
-    async def create_user(self, credentials: CredentialsDTO) -> UserDTO:
-        redis_client = RedisClient()
+class UserRepository(BaseRepository):    
+    def __init__(self):
+        super().__init__(model=User)
 
-        new_user = User(
+    async def create_user(self, credentials: CredentialsDTO) -> UserDTO:
+        user = self.model(
             login=credentials.login, 
             hashed_password=CryptographyUtils.hash_string(credentials.password)
         )
 
-        await new_user.create()
+        await self.create(user)
         
-        name = redis_client.create_key('user', new_user.id)
-        new_stringified_user = json.dumps(new_user.model_dump(), default=str)
+        stringified_user = json.dumps(user.model_dump(), default=str)
 
-        data = RedisSetRequestDTO(
-            name=name, 
-            value=new_stringified_user
-        )
+        return UserDTO(**json.loads(stringified_user))
 
-        await redis_client.set(**data.model_dump())
+    async def delete_user(self, search_by: dict, soft_delete: bool) -> None:
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
 
-        return UserDTO(**json.loads(new_stringified_user))
-
-    async def delete_users(self, search_by: dict, soft_delete: bool) -> None:
         if 'id' in search_by:
             id = DataUtils.dict_to_model(search_by).id
 
@@ -51,61 +47,66 @@ class UserRepository:
             else:
                 await delete_from_cache(id)
 
-        await User.bulk_delete(search_by, soft_delete)
+        await self.delete(soft_delete, search_by)
 
-    async def update_users(
+    async def update_user(
         self, 
         search_by: dict, 
         user: dict
-    ) -> Optional[Union[UserDTO, list[UserDTO]]]:
-        updated_users = []
+    ) -> Optional[UserDTO]:
         redis_client = RedisClient()
+
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
 
         if 'password' in user:
             password = user['password']
-
-            if isinstance(password, list):
-                user['hashed_password'] = [CryptographyUtils.hash_string(element) 
-                                           for element in password]
-            else:
-                user['hashed_password'] = CryptographyUtils.hash_string(password)
-
+            user['hashed_password'] = CryptographyUtils.hash_string(password)
             del user['password']
 
-        result = await User.bulk_update(search_by, user)
+        result = await self.update_one(search_by, user)
 
         if not result:
             return None
+        
+        stringified_user = json.dumps(result.model_dump(), default=str)
+        name = redis_client.create_key('user', result.id)
+        await redis_client.delete(name)
 
-        for user in result:
-            stringified_user = json.dumps(user.model_dump(), default=str)
-            updated_users.append(stringified_user)
+        return UserDTO(**json.loads(stringified_user))
+    
+    async def get_user_id_by_login(self, login: str) -> Optional[int]:
+        redis_client = RedisClient()
+        user_id = await redis_client.get(login)
 
-            if hasattr(user, 'id'):
-                name = redis_client.create_key('user', user.id)
+        if not user_id:
+            result = await self.get_one_or_none({"login": login})
 
-                data = RedisSetRequestDTO(
-                    name=name,
-                    value=stringified_user
-                )
+            if not result:
+                return None
 
-                await redis_client.set(**data.model_dump())
+            user_id = str(result.id)
 
-        return [UserDTO(**json.loads(user)) for user in updated_users] if len(updated_users) > 1 \
-            else UserDTO(**json.loads(updated_users[0]))
+            data = RedisSetRequestDTO(
+                name=result.login,
+                value=user_id
+            )
 
+            await redis_client.set(**data.model_dump())
+
+        return int(user_id)
 
     async def get_users(
         self, 
         search_by: dict, 
         with_soft_deleted: bool = False
-    ) -> Optional[Union[UserDTO, list[UserDTO]]]:
+    ) -> list[UserDTO]:
         stringified_users_list = []
         redis_client = RedisClient()
 
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
+
         if 'id' in search_by:
             uncached_ids = []
-
             ids = search_by['id'] if isinstance(search_by['id'], list) else [search_by['id']]
 
             for user_id in ids:
@@ -118,66 +119,79 @@ class UserRepository:
                     uncached_ids.append(user_id)
 
             if uncached_ids:
-                result = await User.bulk_get({"id": uncached_ids}, with_soft_deleted)
+                result = await self.get_all({"id": uncached_ids}, with_soft_deleted)
+
+                if result:
+                    for user in result:
+                        stringified_user = json.dumps(user.model_dump(), default=str)
+                        stringified_users_list.append(stringified_user)
+                        name = redis_client.create_key('user', user.id)
+                        data = RedisSetRequestDTO(name=name, value=stringified_user)
+                        await redis_client.set(**data.model_dump())
+
+            if not stringified_users_list:
+                return []
+
+            return [UserDTO(**json.loads(user)) for user in stringified_users_list]
+
+        else:
+            result = await self.get_all(search_by, with_soft_deleted)
+            if not result:
+                return []
+
+            return [UserDTO.model_validate(user) for user in result]
+
+
+    async def get_user(
+        self, 
+        search_by: dict, 
+        with_soft_deleted: bool = False
+    ) -> Optional[UserDTO]:
+        redis_client = RedisClient()
+
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
+
+        if 'id' in search_by:
+            name = redis_client.create_key('user', DataUtils.dict_to_model(search_by).id)
+            stringified_user = await redis_client.get(name)
+
+            if not stringified_user:
+                result = await self.get_one_or_none(search_by, with_soft_deleted)
 
                 if not result:
                     return None
-                
-                for user in result:
-                    stringified_user = json.dumps(user.model_dump(), default=str)
-                    stringified_users_list.append(stringified_user)
-                    name = redis_client.create_key('user', user.id)
 
-                    data = RedisSetRequestDTO(
-                        name=name, 
-                        value=stringified_user
-                    )
+                stringified_user = json.dumps(result.model_dump(), default=str)
 
-                    await redis_client.set(**data.model_dump())
+                data = RedisSetRequestDTO(
+                    name=name, 
+                    value=stringified_user
+                )
 
-            return [UserDTO(**json.loads(stringified_user)) for stringified_user 
-                    in stringified_users_list] if len(ids) > 1 \
-                        else UserDTO(**json.loads(stringified_users_list[0]))
+                await redis_client.set(**data.model_dump())
+            
+            return UserDTO(**json.loads(stringified_user))
 
         else:
-            result = await User.bulk_get(search_by, with_soft_deleted)
+            result = await self.get_one_or_none(search_by, with_soft_deleted)
 
             if not result:
                 return None
-
-            return [UserDTO(**json.loads(json.dumps(user.model_dump(), default=str))) 
-                    for user in result] if len(result) > 1 \
-                        else UserDTO(**json.loads(json.dumps(result[0].model_dump(), default=str)))
-    
-    async def get_user_id_by_login(self, login: str) -> Optional[int]:
-        redis_client = RedisClient()
-        user_id = await redis_client.get(login)
-
-        if not user_id:
-            result = await User(login=login).get()
-
-            if not result:
-                return None
-
-            user = result.pop()
-            user_id = str(user.id)
-
-            data = RedisSetRequestDTO(
-                name=user.login,
-                value=user_id
-            )
-
-            await redis_client.set(**data.model_dump())
-
-        return int(user_id)
+            
+            stringified_user = json.dumps(result.model_dump(), default=str)
+            
+            return UserDTO(**json.loads(stringified_user))
 
     async def get_users_with_relations(
         self, 
         search_by: dict,
         with_soft_deleted: bool = False
-    ) -> Optional[Union[UserDTO, list[UserDTO]]]:
+    ) -> list[UserDTO]:
         stringified_users_list = []
         redis_client = RedisClient()
+        relations = ["bank_accounts", "bank_accounts.purchases"]
+
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
 
         if 'id' in search_by:
             uncached_ids = []
@@ -193,41 +207,84 @@ class UserRepository:
                     uncached_ids.append(user_id)
 
             if uncached_ids:
-                result = await User.bulk_get_with_joinedload(
+                result = await self.get_all_with_joinedload(
                     {"id": uncached_ids}, 
-                    ["bank_accounts", "bank_accounts.purchases"],
+                    relations, 
+                    with_soft_deleted
+                )
+
+                if result:
+                    for user in result:
+                        user_dict = self.model.nested_models_to_dict(user)
+                        stringified_user = json.dumps(user_dict, default=str)
+                        stringified_users_list.append(stringified_user)
+                        name = redis_client.create_key('user_with_relations', user.id)
+                        data = RedisSetRequestDTO(name=name, value=stringified_user)
+                        await redis_client.set(**data.model_dump())
+
+            if not stringified_users_list:
+                return []
+
+            return [UserDTO(**json.loads(user)) for user in stringified_users_list]
+
+        else:
+            result = await self.get_all_with_joinedload(
+                search_by, 
+                relations, 
+                with_soft_deleted
+            )
+            
+            if not result:
+                return []
+
+            return [UserDTO(**self.model.nested_models_to_dict(user)) for user in result]
+
+
+    async def get_user_with_relations(
+        self, 
+        search_by: dict,
+        with_soft_deleted: bool = False
+    ) -> Optional[UserDTO]:
+        redis_client = RedisClient()
+        relations = ["bank_accounts", "bank_accounts.purchases"]
+
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
+
+        if 'id' in search_by:
+            name = redis_client.create_key('user_with_relations', DataUtils.dict_to_model(search_by).id)
+            stringified_user = await redis_client.get(name)
+
+            if not stringified_user:
+                result = await self.get_one_or_none_with_joinedload(
+                    search_by, 
+                    relations, 
                     with_soft_deleted
                 )
 
                 if not result:
                     return None
-                
-                for user in result:
-                    stringified_user = json.dumps(User.nested_models_to_dict(user), default=str)
-                    stringified_users_list.append(stringified_user)
-                    name = redis_client.create_key('user_with_relations', user.id)
 
-                    data = RedisSetRequestDTO(
-                        name=name, 
-                        value=stringified_user
-                    )
+                stringified_user = json.dumps(result.model_dump(), default=str)
 
-                    await redis_client.set(**data.model_dump())
+                data = RedisSetRequestDTO(
+                    name=name, 
+                    value=stringified_user
+                )
 
-            return [UserDTO(**json.loads(stringified_user)) for stringified_user 
-                    in stringified_users_list] if len(ids) > 1 \
-                        else UserDTO(**json.loads(stringified_users_list[0]))
+                await redis_client.set(**data.model_dump())
+            
+            return UserDTO(**json.loads(stringified_user))
 
         else:
-            result = await User.bulk_get_with_joinedload(
+            result = await self.get_one_or_none_with_joinedload(
                 search_by, 
-                ["bank_accounts", "bank_accounts.purchases"],
+                relations, 
                 with_soft_deleted
             )
 
             if not result:
                 return None
-
-            return [UserDTO(**json.loads(json.dumps(User.nested_models_to_dict(user), default=str))) 
-                    for user in result] if len(result) > 1 \
-                        else UserDTO(**json.loads(json.dumps(User.nested_models_to_dict(result[0]), default=str)))
+            
+            stringified_user = json.dumps(result.model_dump(), default=str)
+            
+            return UserDTO(**json.loads(stringified_user))

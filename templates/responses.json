@@ -11,6 +11,7 @@
     "bank_account_not_found_error": ["Bank account not found", "", 404],
 
     "info_message": "Hello, this response was created in FastAPI",
+    "clear_cache_message": "Redis cache cleared successfully",
     "authorized_message": "Successfully authorized in Spending tracker",
     "user_created_message": "Successfully registered in Spending tracker",
     "user_received_message": "User was successfully received",

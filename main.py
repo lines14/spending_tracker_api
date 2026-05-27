@@ -1,12 +1,12 @@
 import asyncio
 import aioschedule
-from db.db import DB
 from routes import *
 from os import getenv
 from scheduler import *
 from middlewares import *
 from fastapi import FastAPI
 from dotenv import load_dotenv
+from db.base.base_db import BaseDB
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -22,7 +22,7 @@ async def start_scheduler():
         
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await DB().init_tables()
+    await BaseDB().init_tables()
     asyncio.create_task(start_scheduler())
     yield
 

@@ -1,22 +1,28 @@
 import json
 from dto import PurchaseDTO
+from utils import DataUtils
 from typing import Optional
-from models import Purchase
+from models.purchase import Purchase
+from repositories.base.base_repository import BaseRepository
 
-class PurchaseRepository:    
-    async def create_purchase(self, purchase: PurchaseDTO) -> None:
-        await Purchase(**purchase.model_dump()).create()
+class PurchaseRepository(BaseRepository):    
+    def __init__(self):
+        super().__init__(model=Purchase)
+
+    async def create_purchase(self, purchase_dto: PurchaseDTO) -> None:
+        purchase = self.model(**purchase_dto.model_dump())
+        await self.create(purchase)
 
     async def get_purchase(self, search_by: dict) -> Optional[PurchaseDTO]:
-        result = await Purchase(**search_by).get()
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
+        result = await self.get_one_or_none(search_by)
 
         if not result:
             return None
         
-        purchase = result.pop()
-        stringified_purchase = json.dumps(purchase.model_dump(), default=str)
-
+        stringified_purchase = json.dumps(result.model_dump(), default=str)
         return PurchaseDTO(**json.loads(stringified_purchase))
 
     async def delete_purchase(self, search_by: dict, soft_delete: bool) -> None:
-        await Purchase(**search_by).delete(soft_delete)
+        search_by = DataUtils.filter_search_fields(search_by, self.model)
+        await self.delete(search_by, soft_delete)

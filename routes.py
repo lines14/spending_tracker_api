@@ -7,6 +7,7 @@ router = APIRouter()
 router.get("/", response_class=HTMLResponse)(TemplateController.get_template)
 router.post('/auth', response_model=ResponseContentDTO)(AuthController.auth)
 router.get('/greetings', response_model=ResponseContentDTO)(GreetingsController.greetings)
+router.get('/clear-cache', response_model=ResponseContentDTO)(CacheController.clear_cache)
 
 user_router = APIRouter(prefix="/user", tags=["User"])
 router.post('/registration', response_model=UserDTO)(UserController.create_user)

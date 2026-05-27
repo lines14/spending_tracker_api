@@ -6,10 +6,12 @@ from fastapi import Request, Response
 from utils import Logger, ResponseUtils, DataUtils
 from starlette.middleware.base import BaseHTTPMiddleware
 from dto import StackElementDTO, ErrorInfoDTO, ReceiveDTO
+from repositories.base.base_repository import BaseRepository
 
 class LogErrorsMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
         super().__init__(app)
+        self.error_log_repository = BaseRepository(model=ErrorLog)
 
     async def dispatch(self, request: Request, call_next) -> Response:
         body_bytes = await request.body()
@@ -64,7 +66,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
                 message=str(exc_value)
             )
 
-            await error_log.create()
+            await self.error_log_repository.create(error_log)
 
             try:
                 error_response = json.loads(str(e))

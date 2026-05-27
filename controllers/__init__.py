@@ -1,5 +1,6 @@
 from controllers.user_controller import UserController
 from controllers.auth_controller import AuthController
+from controllers.cache_controller import CacheController
 from controllers.purchase_controller import PurchaseController
 from controllers.template_controller import TemplateController
 from controllers.greetings_controller import GreetingsController
