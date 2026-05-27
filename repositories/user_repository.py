@@ -264,7 +264,7 @@ class UserRepository(BaseRepository):
                 if not result:
                     return None
 
-                stringified_user = json.dumps(result.model_dump(), default=str)
+                stringified_user = json.dumps(self.model.nested_models_to_dict(result), default=str)
 
                 data = RedisSetRequestDTO(
                     name=name, 
@@ -285,6 +285,6 @@ class UserRepository(BaseRepository):
             if not result:
                 return None
             
-            stringified_user = json.dumps(result.model_dump(), default=str)
+            stringified_user = json.dumps(self.model.nested_models_to_dict(result), default=str)
             
             return UserDTO(**json.loads(stringified_user))

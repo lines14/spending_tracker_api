@@ -44,12 +44,12 @@ class BaseRepository:
 
     async def get_all_with_joinedload(
         self, 
-        target: Union[dict, SQLModel], 
-        keys: list[str], 
+        target: Optional[Union[dict, SQLModel]] = None,
+        keys: list[str] = None, 
         with_soft_deleted: bool = False
     ) -> list[Any]:
         async with BaseDB() as db:
-            query = db.build_select_query_with_joinedload(self.model, target, keys, with_soft_deleted)
+            query = db.build_select_query_with_joinedload(self.model, target or {}, keys, with_soft_deleted)
             result = await db.session.execute(query.order_by(desc(self.model.id)))
             res = result.unique().scalars().all()
             
@@ -98,12 +98,12 @@ class BaseRepository:
 
     async def update_one(
         self, 
-        filters: dict, 
+        target: dict, 
         fields_to_update: dict
     ) -> Optional[Any]:
         async with BaseDB() as db:
             async with db.session.begin():
-                query = db.build_select_query(self.model, filters, with_soft_deleted=False)
+                query = db.build_select_query(self.model, target, with_soft_deleted=False)
                 result = await db.session.execute(query)
                 record = result.scalars().one_or_none()
 
@@ -115,12 +115,12 @@ class BaseRepository:
 
     async def update_all(
         self, 
-        filters: dict, 
+        target: dict, 
         fields_to_update: dict
     ) -> list[Any]:
         async with BaseDB() as db:
             async with db.session.begin():
-                query = db.build_select_query(self.model, filters, with_soft_deleted=False)
+                query = db.build_select_query(self.model, target, with_soft_deleted=False)
                 result = await db.session.execute(query.order_by(desc(self.model.id)))
                 records = result.scalars().all()
 
@@ -150,11 +150,11 @@ class BaseRepository:
     async def delete(
         self,
         soft_delete: bool,
-        target: Union[dict, SQLModel]
+        target: Optional[Union[dict, SQLModel]] = None,
     ) -> None:
         async with BaseDB() as db:
             async with db.session.begin():
-                query = db.build_select_query(self.model, target, with_soft_deleted=True)
+                query = db.build_select_query(self.model, target or {}, with_soft_deleted=True)
                 result = await db.session.execute(query)
                 existing_records = result.scalars().all()
 
@@ -170,11 +170,11 @@ class BaseRepository:
     async def bulk_delete(
         self,  
         soft_delete: bool,
-        target: Union[dict, SQLModel]
+        target: Optional[Union[dict, SQLModel]] = None,
     ) -> None:
         async with BaseDB() as db:
             async with db.session.begin():
-                query = db.build_select_query(self.model, target, with_soft_deleted=True)
+                query = db.build_select_query(self.model, target or {}, with_soft_deleted=True)
                 
                 if soft_delete:
                     await db.session.execute(
