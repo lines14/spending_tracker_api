@@ -193,7 +193,7 @@ class UserRepository:
                     uncached_ids.append(user_id)
 
             if uncached_ids:
-                result = await User.bulk_get_with_joined_load(
+                result = await User.bulk_get_with_joinedload(
                     {"id": uncached_ids}, 
                     ["bank_accounts", "bank_accounts.purchases"],
                     with_soft_deleted
@@ -219,7 +219,7 @@ class UserRepository:
                         else UserDTO(**json.loads(stringified_users_list[0]))
 
         else:
-            result = await User.bulk_get_with_joined_load(
+            result = await User.bulk_get_with_joinedload(
                 search_by, 
                 ["bank_accounts", "bank_accounts.purchases"],
                 with_soft_deleted

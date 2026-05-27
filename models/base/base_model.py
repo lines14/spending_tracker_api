@@ -50,12 +50,12 @@ class BaseModel(SQLModel):
     async def get(self, with_soft_deleted: bool = False) -> list[SQLModel]:
         return await DB().get(type(self), self, with_soft_deleted)
     
-    async def get_with_joined_load(
+    async def get_with_joinedload(
         self, 
         keys: list[str], 
         with_soft_deleted: bool = False
     ) -> list[SQLModel]:
-        result = await DB().get_with_joined_load(self, keys, with_soft_deleted)
+        result = await DB().get_with_joinedload(self, keys, with_soft_deleted)
 
         if not with_soft_deleted:
             return self.clean_soft_deleted_relations(result)
@@ -77,13 +77,13 @@ class BaseModel(SQLModel):
         return await DB().get(cls, search_by, with_soft_deleted)
     
     @classmethod
-    async def bulk_get_with_joined_load(
+    async def bulk_get_with_joinedload(
         cls, 
         search_by: dict, 
         keys: list[str], 
         with_soft_deleted: bool = False
     ) -> list[SQLModel]:
-        result = await DB().get_with_joined_load(cls, search_by, keys, with_soft_deleted)
+        result = await DB().get_with_joinedload(cls, search_by, keys, with_soft_deleted)
 
         if not with_soft_deleted:
             return cls.clean_soft_deleted_relations(result)

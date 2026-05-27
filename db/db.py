@@ -1,70 +1,122 @@
 from datetime import datetime
 from sqlmodel import SQLModel
-from typing import Type, Union
-from sqlalchemy.sql import and_
 from db.base.base_db import BaseDB 
+from typing import Type, Union, Optional
+from sqlalchemy import desc, update, delete
 from sqlalchemy.dialects.mysql import insert
-from sqlalchemy import desc, select, update, delete
 
 class DB(BaseDB):
+    async def get_all(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        with_soft_deleted: bool = False
+    ) -> list[SQLModel]:
+        async with self as db:
+            query = self.build_select_query(model, target, with_soft_deleted)
+            result = await db.session.execute(query.order_by(desc(model.id)))
+            return result.scalars().all()
+        
+    async def get_first(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel],
+        with_soft_deleted: bool = False
+    ) -> Optional[SQLModel]:
+        async with self as db:
+            query = self.build_select_query(model, target, with_soft_deleted)
+            result = await db.session.execute(query.order_by(desc(model.id)).limit(1))
+            return result.scalars().first()
+        
+    async def get_one_or_none(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        with_soft_deleted: bool = False
+    ) -> Optional[SQLModel]:
+        async with self as db:
+            query = self.build_select_query(model, target, with_soft_deleted)
+            result = await db.session.execute(query)
+            return result.scalars().one_or_none()
+
+    async def get_all_with_joinedload(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        keys: list[str], 
+        with_soft_deleted: bool = False
+    ) -> list[SQLModel]:
+        async with self as db:
+            query = self.build_select_query_with_joinedload(model, target, keys, with_soft_deleted)
+            result = await db.session.execute(query.order_by(desc(model.id)))
+            return result.unique().scalars().all()
+        
+    async def get_first_with_joinedload(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        keys: list[str], 
+        with_soft_deleted: bool = False
+    ) -> Optional[SQLModel]:
+        async with self as db:
+            query = self.build_select_query_with_joinedload(model, target, keys, with_soft_deleted)
+            result = await db.session.execute(query.order_by(desc(model.id)).limit(1))
+            return result.unique().scalars().first()
+        
+    async def get_one_or_none_with_joinedload(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        keys: list[str], 
+        with_soft_deleted: bool = False
+    ) -> Optional[SQLModel]:
+        async with self as db:
+            query = self.build_select_query_with_joinedload(model, target, keys, with_soft_deleted)
+            result = await db.session.execute(query)
+            return result.unique().scalars().one_or_none()
+    
     async def create(self, instance: SQLModel):
         async with self as db:
             async with db.session.begin():
                 db.session.add(instance)
             await db.session.refresh(instance)
 
-    async def update(
+    async def update_one(
+        self, 
+        model: Type[SQLModel], 
+        filters: dict, 
+        fields_to_update: dict
+    ) -> Optional[SQLModel]:
+        async with self as db:
+            async with db.session.begin():
+                query = self.build_select_query(model, filters, with_soft_deleted=False)
+                result = await db.session.execute(query)
+                record = result.scalars().one_or_none()
+
+                if record:
+                    for key, value in fields_to_update.items():
+                        setattr(record, key, value)
+                
+                return record
+
+    async def update_all(
         self, 
         model: Type[SQLModel], 
         filters: dict, 
         fields_to_update: dict
     ) -> list[SQLModel]:
         async with self as db:
-            records = []
-            updated_objects = []
-
-            max_updates = max(len(value) if isinstance(value, list) else 1 
-                              for value in {**filters, **fields_to_update}.values())
-
-            for i in range(max_updates):
-                record_filter = {}
-                record_update = {}
-
-                for key, value in filters.items():
-                    if isinstance(value, list):
-                        record_filter[key] = value[i] if i < len(value) else None
-                    else:
-                        record_filter[key] = value
-
-                for key, value in fields_to_update.items():
-                    if isinstance(value, list):
-                        if i < len(value):
-                            record_update[key] = value[i]
-                    else:
-                        record_update[key] = value
-
-                if all(v is not None for v in record_filter.values()):
-                    records.append((record_filter, record_update))
-
             async with db.session.begin():
-                for record_filter, record_update in records:
-                    filter_expressions = self.get_filter_expressions(model, record_filter)
+                query = self.build_select_query(model, filters, with_soft_deleted=False)
+                result = await db.session.execute(query.order_by(desc(model.id)))
+                records = result.scalars().all()
 
-                    result = await db.session.execute(
-                        select(model)
-                        .where(and_(*filter_expressions))
-                    )
-
-                    existing_records = result.scalars().all()
-
-                    for existing_record in existing_records:
-                        for key, value in record_update.items():
-                            setattr(existing_record, key, value)
-
-                        updated_objects.append(existing_record)
-
-            return updated_objects
-
+                for record in records:
+                    for key, value in fields_to_update.items():
+                        setattr(record, key, value)
+                
+                return records
+    
     async def create_or_update(self, instance: SQLModel):
         async with self as db:
             instance_properties = dict(instance)
@@ -82,73 +134,7 @@ class DB(BaseDB):
             for index, instance in enumerate(instances):
                 instance.id = index + 1
                 await db.create_or_update(instance)
-
-    async def get(
-        self, 
-        model: Type[SQLModel], 
-        target: Union[dict, SQLModel], 
-        with_soft_deleted: bool
-    ) -> list[SQLModel]:
-        async with self as db:
-            filter_expressions = self.get_filter_expressions(model, target)
-
-            if not with_soft_deleted:
-                filter_expressions.append(getattr(model, 'deleted_at') == None)
-
-            result = await db.session.execute(
-                select(model)
-                .where(and_(*filter_expressions))
-                .order_by(desc(model.id))
-            )
-
-            return result.scalars().all()
-
-    async def get_with_joined_load(
-        self, 
-        model: Type[SQLModel], 
-        target: Union[dict, SQLModel], 
-        keys: list[str], 
-        with_soft_deleted: bool
-    ) -> list[SQLModel]:
-        async with self as db:
-            filter_expressions = self.get_filter_expressions(model, target)
-
-            if not with_soft_deleted:
-                filter_expressions.append(getattr(model, 'deleted_at') == None)
-
-            options = [self.build_nested_joinedload(model, key) for key in keys]
-
-            result = await db.session.execute(
-                select(model)
-                .options(*options)
-                .where(and_(*filter_expressions))
-                .order_by(desc(model.id))
-            )
-
-            return result.unique().scalars().all()
-            
-    async def execute_delete(
-        self, 
-        model: Type[SQLModel], 
-        target: Union[dict, SQLModel], 
-        soft_delete: bool
-    ) -> None:
-        async with self as db:
-            filter_expressions = self.get_filter_expressions(model, target)
-
-            async with db.session.begin():
-                if soft_delete:
-                    await db.session.execute(
-                        update(model)
-                        .where(and_(*filter_expressions))
-                        .values(deleted_at=datetime.utcnow())
-                    )
-                else:
-                    await db.session.execute(
-                        delete(model)
-                        .where(and_(*filter_expressions))
-                    )
-
+  
     async def delete(
         self, 
         model: Type[SQLModel], 
@@ -156,21 +142,38 @@ class DB(BaseDB):
         soft_delete: bool
     ) -> None:
         async with self as db:
-            filter_expressions = self.get_filter_expressions(model, target)
-
             async with db.session.begin():
-                result = await db.session.execute(
-                    select(model)
-                    .where(and_(*filter_expressions))
-                )
-                
+                query = self.build_select_query(model, target, with_soft_deleted=True)
+                result = await db.session.execute(query)
                 existing_records = result.scalars().all()
 
-                if len(existing_records) > 0:
+                if existing_records:
                     if soft_delete:
+                        current_time = datetime.utcnow()
                         for existing_record in existing_records:
-                            setattr(existing_record, 'deleted_at', datetime.utcnow())
+                            setattr(existing_record, 'deleted_at', current_time)
                     else:
                         for existing_record in existing_records:
-                            await db.session.close()  # На всякий случай закрываем или удаляем
                             await db.session.delete(existing_record)
+
+    async def bulk_delete(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        soft_delete: bool
+    ) -> None:
+        async with self as db:
+            async with db.session.begin():
+                query = self.build_select_query(model, target, with_soft_deleted=True)
+                
+                if soft_delete:
+                    await db.session.execute(
+                        update(model)
+                        .where(query.whereclause)
+                        .values(deleted_at=datetime.utcnow())
+                    )
+                else:
+                    await db.session.execute(
+                        delete(model)
+                        .where(query.whereclause)
+                    )

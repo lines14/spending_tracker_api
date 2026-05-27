@@ -1,8 +1,9 @@
 from config import Config
 from sqlmodel import SQLModel
 from typing import Type, Union
-from sqlalchemy import inspect
+from sqlalchemy.sql import and_
 from sqlalchemy.orm import joinedload
+from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 class BaseDB:
@@ -75,3 +76,29 @@ class BaseDB:
                     filter_expressions.append(getattr(model, key) == value)
 
         return filter_expressions
+    
+    def build_select_query(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        with_soft_deleted: bool
+    ):
+        filter_expressions = self.get_filter_expressions(model, target)
+
+        if not with_soft_deleted and hasattr(model, 'deleted_at'):
+            filter_expressions.append(getattr(model, 'deleted_at') == None)
+
+        return select(model).where(and_(*filter_expressions))
+    
+    def build_select_query_with_joinedload(
+        self, 
+        model: Type[SQLModel], 
+        target: Union[dict, SQLModel], 
+        keys: list[str],
+        with_soft_deleted: bool = False
+    ):
+        query = self.build_select_query(model, target, with_soft_deleted)
+        
+        options = [self.build_nested_joinedload(model, key) for key in keys]
+        
+        return query.options(*options)
