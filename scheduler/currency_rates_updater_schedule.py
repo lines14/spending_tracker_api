@@ -63,4 +63,4 @@ class CurrencyRatesUpdaterSchedule(BaseSeeder):
 
         await self.seed(data_list)
         
-        print(f'INFO:     Successfully updated currency rates')
+        print(f'INFO:     [Scheduler] Successfully updated currency rates')

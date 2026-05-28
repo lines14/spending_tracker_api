@@ -1,5 +1,3 @@
-# from sqlalchemy import event
-# from models.base.observers import *
 from sqlmodel import Field, Relationship
 from typing import Optional, TYPE_CHECKING
 from models.base.base_model import BaseModel
@@ -22,7 +20,3 @@ class BankAccount(BaseModel, table=True):
     )
 
 BankAccount.model_rebuild()
-
-# event.listen(BankAccount, 'after_insert', after_insert)
-# event.listen(BankAccount, 'after_update', after_update)
-# event.listen(BankAccount, 'after_delete', after_delete)

@@ -31,15 +31,15 @@ class UserRepository(BaseRepository):
 
             async def delete_from_cache(id):
                 redis_client = RedisClient()
-                name = redis_client.create_key('user', id)
-                stringified_user = await redis_client.get(name)
+                key = redis_client.create_key('user', id)
+                stringified_user = await redis_client.get(key)
 
                 user = UserDTO(**json.loads(stringified_user))
                 
                 await SessionRepository().delete_session(id)
 
                 await redis_client.delete(user.login)
-                await redis_client.delete(name)
+                await redis_client.delete(key)
 
             if isinstance(id, list) and len(id) > 0:
                 for element in id:
@@ -69,8 +69,8 @@ class UserRepository(BaseRepository):
             return None
         
         stringified_user = json.dumps(result.model_dump(), default=str)
-        name = redis_client.create_key('user', result.id)
-        await redis_client.delete(name)
+        key = redis_client.create_key('user', result.id)
+        await redis_client.delete(key)
 
         return UserDTO(**json.loads(stringified_user))
     
@@ -110,8 +110,8 @@ class UserRepository(BaseRepository):
             ids = search_by['id'] if isinstance(search_by['id'], list) else [search_by['id']]
 
             for user_id in ids:
-                name = redis_client.create_key('user', user_id)
-                cached_user = await redis_client.get(name)
+                key = redis_client.create_key('user', user_id)
+                cached_user = await redis_client.get(key)
 
                 if cached_user:
                     stringified_users_list.append(cached_user)
@@ -125,8 +125,13 @@ class UserRepository(BaseRepository):
                     for user in result:
                         stringified_user = json.dumps(user.model_dump(), default=str)
                         stringified_users_list.append(stringified_user)
-                        name = redis_client.create_key('user', user.id)
-                        data = RedisSetRequestDTO(name=name, value=stringified_user)
+                        key = redis_client.create_key('user', user.id)
+
+                        data = RedisSetRequestDTO(
+                            name=key, 
+                            value=stringified_user
+                        )
+
                         await redis_client.set(**data.model_dump())
 
             if not stringified_users_list:
@@ -152,8 +157,8 @@ class UserRepository(BaseRepository):
         search_by = DataUtils.filter_search_fields(search_by, self.model)
 
         if 'id' in search_by:
-            name = redis_client.create_key('user', DataUtils.dict_to_model(search_by).id)
-            stringified_user = await redis_client.get(name)
+            key = redis_client.create_key('user', DataUtils.dict_to_model(search_by).id)
+            stringified_user = await redis_client.get(key)
 
             if not stringified_user:
                 result = await self.get_one_or_none(search_by, with_soft_deleted)
@@ -164,7 +169,7 @@ class UserRepository(BaseRepository):
                 stringified_user = json.dumps(result.model_dump(), default=str)
 
                 data = RedisSetRequestDTO(
-                    name=name, 
+                    name=key, 
                     value=stringified_user
                 )
 
@@ -198,8 +203,8 @@ class UserRepository(BaseRepository):
             ids = search_by['id'] if isinstance(search_by['id'], list) else [search_by['id']]
 
             for user_id in ids:
-                name = redis_client.create_key('user_with_relations', user_id)
-                cached_user = await redis_client.get(name)
+                key = redis_client.create_key('user_with_relations', user_id)
+                cached_user = await redis_client.get(key)
 
                 if cached_user:
                     stringified_users_list.append(cached_user)
@@ -218,8 +223,13 @@ class UserRepository(BaseRepository):
                         user_dict = self.model.nested_models_to_dict(user)
                         stringified_user = json.dumps(user_dict, default=str)
                         stringified_users_list.append(stringified_user)
-                        name = redis_client.create_key('user_with_relations', user.id)
-                        data = RedisSetRequestDTO(name=name, value=stringified_user)
+                        key = redis_client.create_key('user_with_relations', user.id)
+
+                        data = RedisSetRequestDTO(
+                            name=key, 
+                            value=stringified_user
+                        )
+
                         await redis_client.set(**data.model_dump())
 
             if not stringified_users_list:
@@ -251,8 +261,8 @@ class UserRepository(BaseRepository):
         search_by = DataUtils.filter_search_fields(search_by, self.model)
 
         if 'id' in search_by:
-            name = redis_client.create_key('user_with_relations', DataUtils.dict_to_model(search_by).id)
-            stringified_user = await redis_client.get(name)
+            key = redis_client.create_key('user_with_relations', DataUtils.dict_to_model(search_by).id)
+            stringified_user = await redis_client.get(key)
 
             if not stringified_user:
                 result = await self.get_one_or_none_with_joinedload(
@@ -267,7 +277,7 @@ class UserRepository(BaseRepository):
                 stringified_user = json.dumps(self.model.nested_models_to_dict(result), default=str)
 
                 data = RedisSetRequestDTO(
-                    name=name, 
+                    name=key, 
                     value=stringified_user
                 )
 

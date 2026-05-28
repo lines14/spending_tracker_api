@@ -25,11 +25,11 @@ class SessionRepository(BaseRepository):
 
         await self.create(session)
 
-        name = redis_client.create_key('session', session.user_id)
+        key = redis_client.create_key('session', session.user_id)
         stringified_session = json.dumps(session.model_dump(), default=str)
 
         data = RedisSetexRequestDTO(
-            name=name,
+            name=key,
             time=getenv('TOKEN_TTL'), 
             value=stringified_session
         )
@@ -38,8 +38,8 @@ class SessionRepository(BaseRepository):
 
     async def get_session(self, user_id: int) -> Optional[SessionDTO]:
         redis_client = RedisClient()
-        name = redis_client.create_key('session', user_id)
-        stringified_session = await redis_client.get(name)
+        key = redis_client.create_key('session', user_id)
+        stringified_session = await redis_client.get(key)
 
         if not stringified_session:
             return None
@@ -48,5 +48,5 @@ class SessionRepository(BaseRepository):
     
     async def delete_session(self, user_id: int) -> None:
         redis_client = RedisClient()
-        name = redis_client.create_key('session', user_id)
-        await redis_client.delete(name)
+        key = redis_client.create_key('session', user_id)
+        await redis_client.delete(key)
