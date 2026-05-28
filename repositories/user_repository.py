@@ -1,11 +1,13 @@
 import json
+from os import getenv
 from models import User
 from typing import Optional
 from utils import CryptographyUtils, DataUtils
+from repositories.base.cache_tagger import CacheTagger
 from repositories.base.redis_client import RedisClient
-from dto import RedisSetRequestDTO, CredentialsDTO, UserDTO
 from repositories.base.base_repository import BaseRepository
 from repositories.session_repository import SessionRepository
+from dto import RedisSetRequestDTO, RedisSetexWithTagsRequestDTO, CredentialsDTO, UserDTO
 
 class UserRepository(BaseRepository):    
     def __init__(self):
@@ -221,16 +223,20 @@ class UserRepository(BaseRepository):
                 if result:
                     for user in result:
                         user_dict = self.model.nested_models_to_dict(user)
+                        clean_dict = json.loads(json.dumps(user_dict, default=str))
                         stringified_user = json.dumps(user_dict, default=str)
                         stringified_users_list.append(stringified_user)
                         key = redis_client.create_key('user_with_relations', user.id)
+                        dynamic_tags = CacheTagger.extract_tags_from_dto(UserDTO(**clean_dict))
 
-                        data = RedisSetRequestDTO(
-                            name=key, 
-                            value=stringified_user
+                        data = RedisSetexWithTagsRequestDTO(
+                            name=key,
+                            time=getenv('USER_TTL'),
+                            value=stringified_user,
+                            tags=dynamic_tags,
                         )
 
-                        await redis_client.set(**data.model_dump())
+                        await redis_client.setex_with_tags(**data.model_dump())
 
             if not stringified_users_list:
                 return []
@@ -274,14 +280,19 @@ class UserRepository(BaseRepository):
                 if not result:
                     return None
 
-                stringified_user = json.dumps(self.model.nested_models_to_dict(result), default=str)
+                user_dict = self.model.nested_models_to_dict(result)
+                clean_dict = json.loads(json.dumps(user_dict, default=str))
+                stringified_user = json.dumps(user_dict, default=str)
+                dynamic_tags = CacheTagger.extract_tags_from_dto(UserDTO(**clean_dict))
 
-                data = RedisSetRequestDTO(
-                    name=key, 
-                    value=stringified_user
+                data = RedisSetexWithTagsRequestDTO(
+                    name=key,
+                    time=getenv('USER_TTL'),
+                    value=stringified_user,
+                    tags=dynamic_tags,
                 )
 
-                await redis_client.set(**data.model_dump())
+                await redis_client.setex_with_tags(**data.model_dump())
             
             return UserDTO(**json.loads(stringified_user))
 

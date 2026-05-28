@@ -11,6 +11,7 @@ class Config(BaseSettings):
     DB_HOST: str
     DB_PORT: int
     TOKEN_TTL: int
+    USER_TTL: int
     ENCODE_ALGORITHM: str
     FRONT_URL: str
 

@@ -19,7 +19,7 @@ class BankAccountObserver(BaseObserver):
         redis_client.sync_delete(parent_key)
         redis_client.sync_delete(parent_with_relations_key)
 
-        print(f"INFO:     [Observer] Cache invalidated for '{cls.model}:{target.id}' and relations")
+        print(f"INFO:     [Observer] Cache invalidated for '{cls.model.__name__}:{target.id}' and relations")
 
     @classmethod
     def after_update(cls, mapper, connection, target):
@@ -41,4 +41,4 @@ class BankAccountObserver(BaseObserver):
         redis_client.sync_delete(parent_key)
         redis_client.sync_delete(parent_with_relations_key)
         
-        print(f"INFO:     [Observer] Cache invalidated for relations of new '{cls.model}:{target.id}'")
+        print(f"INFO:     [Observer] Cache invalidated for relations of new '{cls.model.__name__}:{target.id}'")

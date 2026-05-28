@@ -62,4 +62,10 @@ class BankAccountRepository(BaseRepository):
         await self.delete(soft_delete, search_by)
 
     async def delete_all_bank_accounts(self, soft_delete: bool) -> None:        
+        redis_client = RedisClient()
+
         await self.bulk_delete(soft_delete)
+        
+        await redis_client.invalidate_tag("bank_accounts")
+        key = redis_client.create_key('bank_accounts')
+        await redis_client.delete(key)

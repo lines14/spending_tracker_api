@@ -4,11 +4,12 @@ from typing import List, Optional
 import redis.asyncio as async_redis
 
 class RedisClient:
+    __sync_pool = sync_redis.ConnectionPool.from_url(Config().REDIS_URL)
+    __async_pool = async_redis.ConnectionPool.from_url(Config().REDIS_URL)
+
     def __init__(self):
-        sync_pool = sync_redis.ConnectionPool.from_url(Config().REDIS_URL)
-        async_pool = async_redis.ConnectionPool.from_url(Config().REDIS_URL)
-        self.__sync_client = sync_redis.Redis(connection_pool=sync_pool)
-        self.__async_client = async_redis.Redis(connection_pool=async_pool)
+        self.__sync_client = sync_redis.Redis(connection_pool=self.__sync_pool)
+        self.__async_client = async_redis.Redis(connection_pool=self.__async_pool)
 
     def create_key(self, prefix: str, id: Optional[int] = None) -> str:
         return f"{prefix}:{str(id)}" if id else f"{prefix}"
@@ -41,18 +42,18 @@ class RedisClient:
     async def disconnect(self):
         await self.__async_client.connection_pool.disconnect()
 
-    async def set_with_tags(self, key: str, value: str, tags: List[str], ttl: Optional[int] = None) -> None:
+    async def setex_with_tags(self, name: str, value: str, tags: List[str], time: Optional[int] = None) -> None:
         async with self.__async_client.pipeline(transaction=True) as pipe:
-            if ttl:
-                pipe.setex(key, ttl, value)
+            if time:
+                pipe.setex(name, time, value)
             else:
-                pipe.set(key, value)
+                pipe.set(name, value)
             
             for tag in tags:
                 tag_key = f"tag:{tag}"
-                pipe.sadd(tag_key, key)
-                if ttl:
-                    pipe.expire(tag_key, ttl + 300) 
+                pipe.sadd(tag_key, name)
+                if time:
+                    pipe.expire(tag_key, time + 300) 
             
             await pipe.execute()
 

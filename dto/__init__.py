@@ -18,3 +18,4 @@ from .bank_account_create_dto import BankAccountCreateDTO
 from .currency_rate_request_dto import CurrencyRateRequestDTO
 from .currency_rate_response_dto import CurrencyRateResponseDTO
 from .response_template_context_dto import ResponseTemplateContextDTO
+from .redis_setex_with_tags_request_dto import RedisSetexWithTagsRequestDTO
