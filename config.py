@@ -10,7 +10,7 @@ class Config(BaseSettings):
     DB_ROOT_PASSWORD: str
     DB_HOST: str
     DB_PORT: int
-    FIN_INFO_TTL: int
+    FIN_DATA_TTL: int
     TOKEN_TTL: int
     USER_TTL: int
     ENCODE_ALGORITHM: str

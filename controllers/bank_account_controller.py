@@ -14,8 +14,8 @@ class BankAccountController:
     ) -> Response:
         return await BankAccountService().get_bank_account(request, locals(), with_relations)
     
-    async def get_all_bank_accounts() -> Response:
-        return await BankAccountService().get_all_bank_accounts()
+    async def get_all_bank_accounts(with_relations: Optional[bool] = False) -> Response:
+        return await BankAccountService().get_all_bank_accounts(locals(), with_relations)
 
     async def delete_bank_account(request: Request, id: int, soft_delete: Optional[bool] = True) -> Response:
         return await BankAccountService().delete_bank_account(request, locals(), soft_delete)

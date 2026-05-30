@@ -78,24 +78,24 @@ class UserRepository(BaseRepository):
     
     async def get_user_id_by_login(self, login: str) -> Optional[int]:
         redis_client = RedisClient()
-        user_id = await redis_client.get(login)
+        id = await redis_client.get(login)
 
-        if not user_id:
+        if not id:
             result = await self.get_one_or_none({"login": login})
 
             if not result:
                 return None
 
-            user_id = str(result.id)
+            id = str(result.id)
 
             data = RedisSetRequestDTO(
                 name=result.login,
-                value=user_id
+                value=id
             )
 
             await redis_client.set(**data.model_dump())
 
-        return int(user_id)
+        return int(id)
 
     async def get_users(
         self, 
@@ -111,14 +111,14 @@ class UserRepository(BaseRepository):
             uncached_ids = []
             ids = search_by['id'] if isinstance(search_by['id'], list) else [search_by['id']]
 
-            for user_id in ids:
-                key = redis_client.create_key('user', user_id)
+            for id in ids:
+                key = redis_client.create_key('user', id)
                 cached_user = await redis_client.get(key)
 
                 if cached_user:
                     stringified_users_list.append(cached_user)
                 else:
-                    uncached_ids.append(user_id)
+                    uncached_ids.append(id)
 
             if uncached_ids:
                 result = await self.get_all({"id": uncached_ids}, with_soft_deleted)
@@ -204,14 +204,14 @@ class UserRepository(BaseRepository):
             uncached_ids = []
             ids = search_by['id'] if isinstance(search_by['id'], list) else [search_by['id']]
 
-            for user_id in ids:
-                key = redis_client.create_key('user_with_relations', user_id)
+            for id in ids:
+                key = redis_client.create_key('user_with_relations', id)
                 cached_user = await redis_client.get(key)
 
                 if cached_user:
                     stringified_users_list.append(cached_user)
                 else:
-                    uncached_ids.append(user_id)
+                    uncached_ids.append(id)
 
             if uncached_ids:
                 result = await self.get_all_with_joinedload(
@@ -253,8 +253,8 @@ class UserRepository(BaseRepository):
             if not result:
                 return []
 
-            return [UserDTO(**self.model.nested_models_to_dict(user)) for user in result]
-
+            stringified_result = json.dumps(self.model.nested_models_to_dict(result), default=str)
+            return [UserDTO(**user) for user in json.loads(stringified_result)]
 
     async def get_user_with_relations(
         self, 

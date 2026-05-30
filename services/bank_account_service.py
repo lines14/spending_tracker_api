@@ -31,8 +31,11 @@ class BankAccountService:
             BankAccountDTO(**existing_bank_account.model_dump()).model_dump()
         )
         
-    async def get_all_bank_accounts(self) -> Response:
-        existing_bank_accounts = await BankAccountRepository().get_all_bank_accounts()
+    async def get_all_bank_accounts(self, search_by: dict, with_relations: bool) -> Response:
+        bank_account_repository = BankAccountRepository()
+
+        existing_bank_accounts = (await bank_account_repository.get_all_bank_accounts_with_relations(search_by) 
+                         if with_relations else await bank_account_repository.get_all_bank_accounts())
 
         return await ResponseUtils.success(
             DataUtils.responses.bank_accounts_received_message, 
