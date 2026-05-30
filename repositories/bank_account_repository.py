@@ -190,5 +190,5 @@ class BankAccountRepository(BaseRepository):
         await self.bulk_delete(soft_delete)
         
         await redis_client.invalidate_tag("bank_accounts")
-        key = redis_client.create_key('bank_accounts')
-        await redis_client.delete(key)
+        prefix = redis_client.create_key('bank_account') 
+        await redis_client.delete_by_prefix(f"*{prefix}*")

@@ -68,3 +68,7 @@ class RedisClient:
             
             pipe.delete(tag_key)
             await pipe.execute()
+
+    async def delete_by_prefix(self, prefix: str) -> None:
+        async for key in self.__async_client.scan_iter(prefix):
+            await self.__async_client.delete(key)

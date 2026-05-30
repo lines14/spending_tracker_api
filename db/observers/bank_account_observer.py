@@ -16,5 +16,6 @@ class BankAccountObserver(BaseObserver):
 
         if event_type in ('update', 'delete'):
             keys.append(redis_client.create_key('bank_account', target.id))
+            keys.append(redis_client.create_key('bank_account_with_relations', target.id))
 
         return keys
