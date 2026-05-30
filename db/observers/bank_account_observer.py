@@ -11,8 +11,11 @@ class BankAccountObserver(BaseObserver):
         redis_client = RedisClient()
 
         keys.append(redis_client.create_key('bank_accounts'))
+        keys.append(redis_client.create_key('bank_accounts_with_relations'))
         keys.append(redis_client.create_key('user', target.user_id))
         keys.append(redis_client.create_key('user_with_relations', target.user_id))
+        keys.append(redis_client.create_key('user_bank_accounts', target.user_id))
+        keys.append(redis_client.create_key('user_bank_accounts_with_relations', target.user_id))
 
         if event_type in ('update', 'delete'):
             keys.append(redis_client.create_key('bank_account', target.id))

@@ -43,10 +43,10 @@ class BaseRepository:
             return result.scalars().one_or_none()
 
     async def get_all_with_joinedload(
-        self, 
-        target: Optional[Union[dict, SQLModel]] = None,
+        self,
         keys: list[str] = None, 
-        with_soft_deleted: bool = False
+        with_soft_deleted: bool = False,
+        target: Optional[Union[dict, SQLModel]] = None
     ) -> list[Any]:
         async with BaseDB() as db:
             query = db.build_select_query_with_joinedload(self.model, target or {}, keys, with_soft_deleted)

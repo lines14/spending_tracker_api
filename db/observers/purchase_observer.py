@@ -13,6 +13,7 @@ class PurchaseObserver(BaseObserver):
 
         keys.append(redis_client.create_key('purchases'))
         keys.append(redis_client.create_key('bank_accounts'))
+        keys.append(redis_client.create_key('bank_accounts_with_relations'))
         keys.append(redis_client.create_key('bank_account', target.account_id))
         keys.append(redis_client.create_key('bank_account_with_relations', target.account_id))
 
@@ -21,6 +22,8 @@ class PurchaseObserver(BaseObserver):
 
         keys.append(redis_client.create_key('user', user_id))
         keys.append(redis_client.create_key('user_with_relations', user_id))
+        keys.append(redis_client.create_key('user_bank_accounts', target.user_id))
+        keys.append(redis_client.create_key('user_bank_accounts_with_relations', user_id))
 
         if event_type in ('update', 'delete'):
             keys.append(redis_client.create_key('purchase', target.id))

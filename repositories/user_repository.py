@@ -215,9 +215,9 @@ class UserRepository(BaseRepository):
 
             if uncached_ids:
                 result = await self.get_all_with_joinedload(
-                    {"id": uncached_ids}, 
                     relations, 
-                    with_soft_deleted
+                    with_soft_deleted,
+                    {"id": uncached_ids}
                 )
 
                 if result:
@@ -244,10 +244,10 @@ class UserRepository(BaseRepository):
             return [UserDTO(**json.loads(user)) for user in stringified_users_list]
 
         else:
-            result = await self.get_all_with_joinedload(
-                search_by, 
+            result = await self.get_all_with_joinedload( 
                 relations, 
-                with_soft_deleted
+                with_soft_deleted,
+                search_by
             )
             
             if not result:

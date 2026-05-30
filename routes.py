@@ -23,6 +23,6 @@ purchase_router.delete('/{id}', response_model=ResponseContentDTO)(PurchaseContr
 bank_account_router = APIRouter(prefix="/bank_account", tags=["Bank account"])
 bank_account_router.post('', response_model=ResponseContentDTO)(BankAccountController.create_bank_account)
 bank_account_router.get('/{id}', response_model=BankAccountDTO)(BankAccountController.get_bank_account)
-bank_account_router.get('', response_model=list[BankAccountDTO])(BankAccountController.get_all_bank_accounts)
+bank_account_router.get('', response_model=list[BankAccountDTO])(BankAccountController.get_bank_accounts)
 bank_account_router.delete('/{id}', response_model=ResponseContentDTO)(BankAccountController.delete_bank_account)
 bank_account_router.delete('', response_model=ResponseContentDTO)(BankAccountController.delete_all_bank_accounts)
