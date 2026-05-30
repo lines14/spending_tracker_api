@@ -17,16 +17,19 @@ class BankAccountService:
         else:
             return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
         
-    async def get_bank_account(self, request: Request, search_by: dict) -> Response:
-        existing_bank_account = await BankAccountRepository().get_bank_account(search_by)
+    async def get_bank_account(self, request: Request, search_by: dict, with_relations: bool) -> Response:
+        bank_account_repository = BankAccountRepository()
 
-        if existing_bank_account:
-            return await ResponseUtils.success(
-                DataUtils.responses.bank_account_received_message, 
-                BankAccountDTO(**existing_bank_account.model_dump()).model_dump()
-            )
-        else:
+        existing_bank_account = (await bank_account_repository.get_bank_account_with_relations(search_by) 
+                         if with_relations else await bank_account_repository.get_bank_account(search_by))
+
+        if not existing_bank_account:
             return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
+
+        return await ResponseUtils.success(
+            DataUtils.responses.bank_account_received_message,
+            BankAccountDTO(**existing_bank_account.model_dump()).model_dump()
+        )
         
     async def get_all_bank_accounts(self) -> Response:
         existing_bank_accounts = await BankAccountRepository().get_all_bank_accounts()

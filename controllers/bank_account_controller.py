@@ -7,8 +7,12 @@ class BankAccountController:
     async def create_bank_account(request: Request, bank_account: BankAccountCreateDTO) -> Response:
         return await BankAccountService().create_bank_account(request, bank_account)
 
-    async def get_bank_account(request: Request, id: int) -> Response:
-        return await BankAccountService().get_bank_account(request, locals())
+    async def get_bank_account(
+        request: Request, 
+        id: int, 
+        with_relations: Optional[bool] = False
+    ) -> Response:
+        return await BankAccountService().get_bank_account(request, locals(), with_relations)
     
     async def get_all_bank_accounts() -> Response:
         return await BankAccountService().get_all_bank_accounts()
