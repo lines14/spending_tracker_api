@@ -24,13 +24,13 @@ class BaseObserver:
                 event.listen(cls.model, event_name, method)
 
     @classmethod
-    def _get_redis_keys_for_cleanup(cls, event_type: str, target) -> list:
+    def _get_redis_keys_for_cleanup(cls, event_type: str, target, connection) -> list:
         raise NotImplementedError
 
     @classmethod
-    def __clear_cache(cls, event_type: str, target):
+    def __clear_cache(cls, event_type: str, target, connection):
         redis_client = RedisClient()
-        keys = cls._get_redis_keys_for_cleanup(event_type, target)
+        keys = cls._get_redis_keys_for_cleanup(event_type, target, connection)
         
         if not keys:
             return
@@ -42,12 +42,12 @@ class BaseObserver:
 
     @classmethod
     def after_insert(cls, mapper, connection, target):
-        cls.__clear_cache('insert', target)
+        cls.__clear_cache('insert', target, connection)
 
     @classmethod
     def after_update(cls, mapper, connection, target):
-        cls.__clear_cache('update', target)
+        cls.__clear_cache('update', target, connection)
 
     @classmethod
     def after_delete(cls, mapper, connection, target):
-        cls.__clear_cache('delete', target)
+        cls.__clear_cache('delete', target, connection)

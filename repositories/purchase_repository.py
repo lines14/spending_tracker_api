@@ -40,4 +40,4 @@ class PurchaseRepository(BaseRepository):
 
     async def delete_purchase(self, search_by: dict, soft_delete: bool) -> None:
         search_by = DataUtils.filter_search_fields(search_by, self.model)
-        await self.delete(search_by, soft_delete)
+        await self.delete(soft_delete, search_by)

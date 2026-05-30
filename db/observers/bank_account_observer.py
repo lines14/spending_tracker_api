@@ -6,7 +6,7 @@ class BankAccountObserver(BaseObserver):
     model = BankAccount
 
     @classmethod
-    def _get_redis_keys_for_cleanup(cls, event_type: str, target) -> list:
+    def _get_redis_keys_for_cleanup(cls, event_type: str, target, connection) -> list:
         keys = []
         redis_client = RedisClient()
 
