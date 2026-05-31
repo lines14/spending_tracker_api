@@ -41,7 +41,7 @@ class PurchaseRepository(BaseRepository):
             )
 
             if not with_soft_deleted:
-                await redis_client.set(**data.model_dump())
+                await redis_client.setex(**data.model_dump())
 
         return PurchaseDTO(**json.loads(stringified_purchase))
 

@@ -160,7 +160,7 @@ class BankAccountRepository(BaseRepository):
                         value=stringified_user_bank_accounts_list
                     )
 
-                    await redis_client.set(**data.model_dump())
+                    await redis_client.setex(**data.model_dump())
 
                 return [BankAccountDTO(**item) for item in json.loads(stringified_user_bank_accounts_list)]
 
@@ -189,7 +189,7 @@ class BankAccountRepository(BaseRepository):
                     value=stringified_bank_accounts_list
                 )
 
-                await redis_client.set(**data.model_dump())
+                await redis_client.setex(**data.model_dump())
 
             return [BankAccountDTO(**bank_account_with_relations) for bank_account_with_relations 
                     in json.loads(stringified_bank_accounts_list)]

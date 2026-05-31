@@ -67,7 +67,7 @@ class UserRepository(BaseRepository):
                 value=id
             )
 
-            await redis_client.set(**data.model_dump())
+            await redis_client.setex(**data.model_dump())
 
         return int(id)
     
@@ -203,7 +203,7 @@ class UserRepository(BaseRepository):
                     value=stringified_users_list
                 )
 
-                await redis_client.set(**data.model_dump())
+                await redis_client.setex(**data.model_dump())
 
             return [UserDTO(**user_with_relations) for user_with_relations 
                     in json.loads(stringified_users_list)]

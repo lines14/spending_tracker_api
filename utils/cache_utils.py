@@ -32,7 +32,7 @@ class CacheUtils:
             f"*{redis_client.create_key('user_with_relations')}:*",
         ]
 
-        tags = [
+        keys = [
             "users", 
             "users_with_relations", 
             "bank_accounts", 
@@ -42,5 +42,6 @@ class CacheUtils:
         
         for prefix in prefixes:
             await redis_client.delete_by_prefix(prefix)
-        for tag in tags:
-            await redis_client.invalidate_tag(tag)
+        for key in keys:
+            await redis_client.invalidate_tag(key)
+            await redis_client.delete(key)
