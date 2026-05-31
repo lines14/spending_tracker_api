@@ -13,6 +13,8 @@ class BankAccountObserver(BaseObserver):
 
         keys.append(redis_client.create_key('bank_accounts'))
         keys.append(redis_client.create_key('bank_accounts_with_relations'))
+        keys.append(redis_client.create_key('users'))
+        keys.append(redis_client.create_key('users_with_relations'))
         keys.append(redis_client.create_key('user', target.user_id))
         keys.append(redis_client.create_key('user_with_relations', target.user_id))
         keys.append(redis_client.create_key('user_bank_accounts', target.user_id))

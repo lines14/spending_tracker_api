@@ -14,6 +14,8 @@ class PurchaseObserver(BaseObserver):
         keys.append(redis_client.create_key('purchases'))
         keys.append(redis_client.create_key('bank_accounts'))
         keys.append(redis_client.create_key('bank_accounts_with_relations'))
+        keys.append(redis_client.create_key('users'))
+        keys.append(redis_client.create_key('users_with_relations'))
         keys.append(redis_client.create_key('bank_account', target.account_id))
         keys.append(redis_client.create_key('bank_account_with_relations', target.account_id))
 
