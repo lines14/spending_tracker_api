@@ -15,6 +15,7 @@
     "authorized_message": "Successfully authorized in Spending tracker",
     "user_created_message": "Successfully registered in Spending tracker",
     "user_received_message": "User was successfully received",
+    "users_received_message": "Users was successfully received",
     "user_updated_message": "Successfully updated user {id}",
     "user_deleted_message": "Successfully deleted user {id}",
     "purchase_created_message": "Successfully created purchase",

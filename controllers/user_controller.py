@@ -1,3 +1,4 @@
+from fastapi import Query
 from typing import Optional
 from typing import Annotated
 from services import UserService
@@ -14,6 +15,12 @@ class UserController:
         with_relations: Optional[bool] = False
     ) -> Response:
         return await UserService().get_user(request, locals(), with_relations)
+    
+    async def get_users(
+        id: Optional[list[int]] = Query(None, alias="ids"),
+        with_relations: Optional[bool] = False
+    ) -> Response:
+        return await UserService().get_users(locals(), with_relations)
     
     async def update_user(
         request: Request, 

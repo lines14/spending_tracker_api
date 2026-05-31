@@ -20,10 +20,7 @@ class UserService:
             return await ResponseUtils.error(request, *DataUtils.responses.user_exists_error)
         
     async def get_user(self, request: Request, search_by: dict, with_relations: bool) -> Response:
-        user_repository = UserRepository()
-
-        existing_user = (await user_repository.get_user_with_relations(search_by) 
-                         if with_relations else await user_repository.get_user(search_by))
+        existing_user = await UserRepository().get_user(search_by, with_relations)
 
         if not existing_user:
             return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
@@ -31,6 +28,14 @@ class UserService:
         return await ResponseUtils.success(
             DataUtils.responses.user_received_message,
             UserDTO(**existing_user.model_dump()).model_dump()
+        )
+    
+    async def get_users(self, search_by: dict, with_relations: bool) -> Response:
+        existing_users = await UserRepository().get_users(search_by, with_relations)
+
+        return await ResponseUtils.success(
+            DataUtils.responses.users_received_message, 
+            [UserDTO(**item.model_dump()).model_dump() for item in existing_users]
         )
 
     async def update_user(self, request: Request, search_by: dict, user: UserUpdateDTO) -> Response:
