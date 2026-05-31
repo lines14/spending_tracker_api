@@ -15,12 +15,13 @@ class BankAccountIssuers(BaseSeeder):
                 BankAccountIssuer(issuer='Freedom', country_code='KAZ'),
                 BankAccountIssuer(issuer='Homecredit', country_code='KAZ'),
                 BankAccountIssuer(issuer='BCC', country_code='KAZ'),
-                BankAccountIssuer(issuer='Jusan', country_code='KAZ'),
+                BankAccountIssuer(issuer='Alatau City', country_code='KAZ'),
                 BankAccountIssuer(issuer='Forte', country_code='KAZ'),
                 BankAccountIssuer(issuer='Bereke', country_code='KAZ'),
                 BankAccountIssuer(issuer='Sberbank', country_code='RUS'),
                 BankAccountIssuer(issuer='VTB', country_code='RUS'),
-                BankAccountIssuer(issuer='OTP', country_code='RUS')
+                BankAccountIssuer(issuer='OTP', country_code='RUS'),
+                BankAccountIssuer(issuer='Cifra', country_code='RUS')
             ]
 
             await self.seed(data_list)

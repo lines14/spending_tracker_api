@@ -14,12 +14,16 @@ class PurchaseRepository(BaseRepository):
         purchase = self.model(**purchase_dto.model_dump())
         await self.create(purchase)
 
-    async def get_purchase(self, search_by: dict) -> Optional[PurchaseDTO]:
+    async def get_purchase(
+        self, 
+        search_by: dict, 
+        with_soft_deleted: bool = False
+    ) -> Optional[PurchaseDTO]:
         redis_client = RedisClient()
 
         search_by = DataUtils.filter_search_fields(search_by, self.model)
         key = redis_client.create_key('purchase', DataUtils.dict_to_model(search_by).id)
-        stringified_purchase = await redis_client.get(key)
+        stringified_purchase = None if with_soft_deleted else await redis_client.get(key)
 
         if not stringified_purchase:
             result = await self.get_one_or_none(search_by)
@@ -34,7 +38,8 @@ class PurchaseRepository(BaseRepository):
                 value=stringified_purchase
             )
 
-            await redis_client.set(**data.model_dump())
+            if not with_soft_deleted:
+                await redis_client.set(**data.model_dump())
 
         return PurchaseDTO(**json.loads(stringified_purchase))
 
