@@ -2,8 +2,8 @@ import json
 from os import getenv
 from models import User
 from typing import Optional
+from utils import CacheUtils
 from utils import CryptographyUtils, DataUtils
-from repositories.base.cache_tagger import CacheTagger
 from repositories.base.redis_client import RedisClient
 from repositories.base.base_repository import BaseRepository
 from dto import RedisSetRequestDTO, RedisSetexWithTagsRequestDTO, CredentialsDTO, UserDTO
@@ -33,8 +33,6 @@ class UserRepository(BaseRepository):
         search_by: dict, 
         user: dict
     ) -> Optional[UserDTO]:
-        redis_client = RedisClient()
-
         search_by = DataUtils.filter_search_fields(search_by, self.model)
 
         if 'password' in user:
@@ -78,8 +76,11 @@ class UserRepository(BaseRepository):
         with_relations: bool = False,
         with_soft_deleted: bool = False
     ) -> Optional[UserDTO]:
+        relations = []
         redis_client = RedisClient()
-        relations = ["bank_accounts", "bank_accounts.purchases"]
+        
+        if with_relations:
+            relations = self.get_relations()
 
         search_by = DataUtils.filter_search_fields(search_by, self.model)
         
@@ -100,13 +101,13 @@ class UserRepository(BaseRepository):
             user_dict = self.model.nested_models_to_dict(result)
             clean_dict = json.loads(json.dumps(user_dict, default=str))
             stringified_user = json.dumps(user_dict, default=str)
-            dynamic_tags = CacheTagger.extract_tags_from_dto(UserDTO(**clean_dict))
+            tags = CacheUtils.extract_cache_tags_from_dto(UserDTO(**clean_dict))
 
             data = RedisSetexWithTagsRequestDTO(
                 name=key,
                 time=getenv('USER_TTL'),
                 value=stringified_user,
-                tags=dynamic_tags,
+                tags=tags,
             )
 
             if not with_soft_deleted:
@@ -120,9 +121,12 @@ class UserRepository(BaseRepository):
         with_relations: bool,
         with_soft_deleted: bool = False
     ) -> list[UserDTO]:
+        relations = []
         stringified_users_list = []
         redis_client = RedisClient()
-        relations = ["bank_accounts", "bank_accounts.purchases"]
+        
+        if with_relations:
+            relations = self.get_relations()
 
         search_by = DataUtils.filter_search_fields(search_by, self.model)
 
@@ -157,13 +161,13 @@ class UserRepository(BaseRepository):
                         stringified_users_list.append(stringified_user)
                         prefix = 'user_with_relations' if with_relations else 'user'
                         key = redis_client.create_key(prefix, user.id)
-                        dynamic_tags = CacheTagger.extract_tags_from_dto(UserDTO(**clean_dict))
+                        tags = CacheUtils.extract_cache_tags_from_dto(UserDTO(**clean_dict))
 
                         data = RedisSetexWithTagsRequestDTO(
                             name=key,
                             time=getenv('USER_TTL'),
                             value=stringified_user,
-                            tags=dynamic_tags,
+                            tags=tags,
                         )
 
                         await redis_client.setex_with_tags(**data.model_dump())

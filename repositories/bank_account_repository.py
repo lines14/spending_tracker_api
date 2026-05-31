@@ -2,8 +2,8 @@ import json
 from os import getenv
 from utils import DataUtils
 from typing import Optional
+from utils import CacheUtils
 from models import BankAccount
-from repositories.base.cache_tagger import CacheTagger
 from repositories.base.redis_client import RedisClient
 from repositories.base.base_repository import BaseRepository
 from dto import BankAccountDTO, RedisSetRequestDTO, RedisSetexWithTagsRequestDTO
@@ -22,8 +22,11 @@ class BankAccountRepository(BaseRepository):
         with_relations: bool = False,
         with_soft_deleted: bool = False
     ) -> Optional[BankAccountDTO]:
+        relations = []
         redis_client = RedisClient()
-        relations = ["purchases"]
+
+        if with_relations:
+            relations = self.get_relations()
 
         search_by = DataUtils.filter_search_fields(search_by, self.model)
         
@@ -44,13 +47,13 @@ class BankAccountRepository(BaseRepository):
             bank_account_dict = self.model.nested_models_to_dict(result)
             clean_dict = json.loads(json.dumps(bank_account_dict, default=str))
             stringified_bank_account = json.dumps(bank_account_dict, default=str)
-            dynamic_tags = CacheTagger.extract_tags_from_dto(BankAccountDTO(**clean_dict))
+            tags = CacheUtils.extract_cache_tags_from_dto(BankAccountDTO(**clean_dict))
 
             data = RedisSetexWithTagsRequestDTO(
                 name=key,
                 time=getenv('FIN_DATA_TTL'),
                 value=stringified_bank_account,
-                tags=dynamic_tags,
+                tags=tags,
             )
 
             if not with_soft_deleted:
@@ -64,9 +67,12 @@ class BankAccountRepository(BaseRepository):
         with_relations: bool,
         with_soft_deleted: bool = False
     ) -> list[BankAccountDTO]:
+        relations = []
         stringified_bank_accounts_list = []
         redis_client = RedisClient()
-        relations = ["purchases"]
+
+        if with_relations:
+            relations = self.get_relations()
 
         search_by = DataUtils.filter_search_fields(search_by, self.model)
 
@@ -110,13 +116,13 @@ class BankAccountRepository(BaseRepository):
                             stringified_bank_accounts_list.append(stringified_bank_account)
                             prefix = 'bank_account_with_relations' if with_relations else 'bank_account'
                             key = redis_client.create_key(prefix, bank_account.id)
-                            dynamic_tags = CacheTagger.extract_tags_from_dto(BankAccountDTO(**clean_dict))
+                            tags = CacheUtils.extract_cache_tags_from_dto(BankAccountDTO(**clean_dict))
 
                             data = RedisSetexWithTagsRequestDTO(
                                 name=key,
                                 time=getenv('FIN_DATA_TTL'),
                                 value=stringified_bank_account,
-                                tags=dynamic_tags,
+                                tags=tags,
                             )
 
                             await redis_client.setex_with_tags(**data.model_dump())
@@ -204,10 +210,5 @@ class BankAccountRepository(BaseRepository):
         await self.delete(soft_delete, search_by)
 
     async def delete_all_bank_accounts(self, soft_delete: bool) -> None:        
-        redis_client = RedisClient()
-
         await self.bulk_delete(soft_delete)
-        
-        await redis_client.invalidate_tag("bank_accounts")
-        prefix = redis_client.create_key('bank_account') 
-        await redis_client.delete_by_prefix(f"*{prefix}*")
+        await CacheUtils.cascade_invalidate_bank_account_cache(RedisClient())

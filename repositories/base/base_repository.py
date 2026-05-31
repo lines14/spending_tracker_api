@@ -154,7 +154,11 @@ class BaseRepository:
     ) -> None:
         async with BaseDB() as db:
             async with db.session.begin():
-                query = db.build_select_query(self.model, target or {}, with_soft_deleted=True, load_all=True)
+                paths = self.get_relations() 
+                query = db.build_select_query_with_joinedload(
+                    self.model, target or {}, paths, with_soft_deleted=True
+                )
+
                 result = await db.session.execute(query)
                 existing_records = result.unique().scalars().all()
 
@@ -206,3 +210,20 @@ class BaseRepository:
                         delete(self.model)
                         .where(query.whereclause)
                     )
+
+    def get_relations(self):
+        paths = []
+
+        def _scan(current_model, prefix=""):
+            mapper = inspect(current_model)
+
+            for rel in mapper.relationships:
+                if rel.direction.name == 'MANYTOONE':
+                    continue
+                
+                path = f"{prefix}{rel.key}" if not prefix else f"{prefix}.{rel.key}"
+                paths.append(path)
+                _scan(rel.mapper.class_, path)
+
+        _scan(self.model)
+        return paths
