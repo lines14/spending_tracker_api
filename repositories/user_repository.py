@@ -6,7 +6,7 @@ from utils import CacheUtils
 from utils import CryptographyUtils, DataUtils
 from repositories.base.redis_client import RedisClient
 from repositories.base.base_repository import BaseRepository
-from dto import RedisSetRequestDTO, RedisSetexWithTagsRequestDTO, CredentialsDTO, UserDTO
+from dto import RedisSetexRequestDTO, RedisSetexWithTagsRequestDTO, CredentialsDTO, UserDTO
 
 class UserRepository(BaseRepository):    
     def __init__(self):
@@ -61,8 +61,9 @@ class UserRepository(BaseRepository):
 
             id = str(result.id)
 
-            data = RedisSetRequestDTO(
+            data = RedisSetexRequestDTO(
                 name=result.login,
+                time=getenv('USER_TTL'),
                 value=id
             )
 
@@ -196,8 +197,9 @@ class UserRepository(BaseRepository):
                     default=str
                 )
 
-                data = RedisSetRequestDTO(
+                data = RedisSetexRequestDTO(
                     name=key, 
+                    time=getenv('USER_TTL'),
                     value=stringified_users_list
                 )
 

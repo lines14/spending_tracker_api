@@ -1,8 +1,9 @@
 import json
+from os import getenv
 from utils import DataUtils
 from typing import Optional
 from models.purchase import Purchase
-from dto import PurchaseDTO, RedisSetRequestDTO
+from dto import PurchaseDTO, RedisSetexRequestDTO
 from repositories.base.redis_client import RedisClient
 from repositories.base.base_repository import BaseRepository
 
@@ -33,8 +34,9 @@ class PurchaseRepository(BaseRepository):
 
             stringified_purchase = json.dumps(result.model_dump(), default=str)
 
-            data = RedisSetRequestDTO(
+            data = RedisSetexRequestDTO(
                 name=key, 
+                time=getenv('FIN_DATA_TTL'),
                 value=stringified_purchase
             )
 

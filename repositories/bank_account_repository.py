@@ -6,7 +6,7 @@ from utils import CacheUtils
 from models import BankAccount
 from repositories.base.redis_client import RedisClient
 from repositories.base.base_repository import BaseRepository
-from dto import BankAccountDTO, RedisSetRequestDTO, RedisSetexWithTagsRequestDTO
+from dto import BankAccountDTO, RedisSetexRequestDTO, RedisSetexWithTagsRequestDTO
 
 class BankAccountRepository(BaseRepository):   
     def __init__(self):
@@ -154,8 +154,9 @@ class BankAccountRepository(BaseRepository):
 
                     stringified_user_bank_accounts_list = json.dumps(BankAccount.nested_models_to_dict(result), default=str)
 
-                    data = RedisSetRequestDTO(
+                    data = RedisSetexRequestDTO(
                         name=key, 
+                        time=getenv('FIN_DATA_TTL'),
                         value=stringified_user_bank_accounts_list
                     )
 
@@ -182,8 +183,9 @@ class BankAccountRepository(BaseRepository):
                     default=str
                 )
 
-                data = RedisSetRequestDTO(
+                data = RedisSetexRequestDTO(
                     name=key, 
+                    time=getenv('FIN_DATA_TTL'),
                     value=stringified_bank_accounts_list
                 )
 
