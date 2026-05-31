@@ -71,5 +71,5 @@ class DataUtils():
         
         return {
             key: value for key, value in search_by.items() 
-            if key in model.model_fields or key in service_keys
+            if (key in model.model_fields or key in service_keys) and value is not None
         }

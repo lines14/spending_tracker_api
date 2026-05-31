@@ -19,7 +19,7 @@ class BankAccountRepository(BaseRepository):
     async def get_bank_account(
         self, 
         search_by: dict,
-        with_relations: bool,
+        with_relations: bool = False,
         with_soft_deleted: bool = False
     ) -> Optional[BankAccountDTO]:
         redis_client = RedisClient()

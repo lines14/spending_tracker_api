@@ -1,5 +1,6 @@
 from config import Config
 from sqlmodel import SQLModel
+from datetime import datetime
 from typing import Type, Union
 from sqlalchemy.sql import and_
 from sqlalchemy.orm import joinedload
@@ -81,14 +82,21 @@ class BaseDB:
         self, 
         model: Type[SQLModel], 
         target: Union[dict, SQLModel], 
-        with_soft_deleted: bool
+        with_soft_deleted: bool,
+        load_all: bool = False
     ):
         filter_expressions = self.get_filter_expressions(model, target)
 
         if not with_soft_deleted and hasattr(model, 'deleted_at'):
             filter_expressions.append(getattr(model, 'deleted_at') == None)
 
-        return select(model).where(and_(*filter_expressions))
+        query = select(model).where(and_(*filter_expressions))
+
+        if load_all:
+            for rel in inspect(model).relationships:
+                query = query.options(joinedload(getattr(model, rel.key)))
+                
+        return query
     
     def build_select_query_with_joinedload(
         self, 
@@ -102,3 +110,22 @@ class BaseDB:
         options = [self.build_nested_joinedload(model, key) for key in keys]
         
         return query.options(*options)
+    
+    async def cascade_soft_delete(self, parent_record, current_time: datetime) -> None:
+        mapper = inspect(parent_record.__class__)
+        for relationship in mapper.relationships:
+            if relationship.cascade.delete or relationship.cascade.delete_orphan:
+                related_value = getattr(parent_record, relationship.key)
+                if not related_value:
+                    continue
+
+                if isinstance(related_value, list):
+                    for child in related_value:
+                        if hasattr(child, 'deleted_at') and child.deleted_at is None:
+                            setattr(child, 'deleted_at', current_time)
+                            await self.cascade_soft_delete(child, current_time)
+                
+                else:
+                    if hasattr(related_value, 'deleted_at') and related_value.deleted_at is None:
+                        setattr(related_value, 'deleted_at', current_time)
+                        await self.cascade_soft_delete(related_value, current_time)

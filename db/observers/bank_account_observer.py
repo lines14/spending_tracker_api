@@ -1,4 +1,5 @@
-from models import BankAccount
+from sqlalchemy import select
+from models import BankAccount, Purchase
 from repositories.base.redis_client import RedisClient
 from db.observers.base.base_observer import BaseObserver
 
@@ -20,5 +21,14 @@ class BankAccountObserver(BaseObserver):
         if event_type in ('update', 'delete'):
             keys.append(redis_client.create_key('bank_account', target.id))
             keys.append(redis_client.create_key('bank_account_with_relations', target.id))
+
+            query = select(Purchase.id).where(Purchase.account_id == target.id)
+            purchase_ids = connection.execute(query).scalars().all()
+
+            for purchase_id in purchase_ids:
+                keys.append(redis_client.create_key('purchase', purchase_id))
+            
+            if purchase_ids:
+                keys.append(redis_client.create_key('purchases'))
 
         return keys

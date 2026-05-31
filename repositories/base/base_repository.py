@@ -1,9 +1,9 @@
 from datetime import datetime
 from sqlmodel import SQLModel
 from db.base.base_db import BaseDB 
-from sqlalchemy import desc, update, delete
 from sqlalchemy.dialects.mysql import insert
 from typing import Type, Union, Optional, Any
+from sqlalchemy import desc, update, delete, select, inspect
 
 class BaseRepository:
     def __init__(self, model: Type[SQLModel]):
@@ -154,15 +154,16 @@ class BaseRepository:
     ) -> None:
         async with BaseDB() as db:
             async with db.session.begin():
-                query = db.build_select_query(self.model, target or {}, with_soft_deleted=True)
+                query = db.build_select_query(self.model, target or {}, with_soft_deleted=True, load_all=True)
                 result = await db.session.execute(query)
-                existing_records = result.scalars().all()
+                existing_records = result.unique().scalars().all()
 
                 if existing_records:
                     if soft_delete:
                         current_time = datetime.utcnow()
                         for existing_record in existing_records:
                             setattr(existing_record, 'deleted_at', current_time)
+                            await db.cascade_soft_delete(existing_record, current_time)
                     else:
                         for existing_record in existing_records:
                             await db.session.delete(existing_record)
@@ -177,10 +178,28 @@ class BaseRepository:
                 query = db.build_select_query(self.model, target or {}, with_soft_deleted=True)
                 
                 if soft_delete:
+                    current_time = datetime.utcnow()
+                    result = await db.session.execute(select(self.model.id).where(query.whereclause))
+                    ids_to_delete = result.scalars().all()
+                    
+                    if not ids_to_delete:
+                        return
+
+                    for relationship in inspect(self.model).relationships:
+                        if relationship.cascade.delete or relationship.cascade.delete_orphan:
+                            child_model = relationship.mapper.class_
+                            
+                            for local_col, remote_col in relationship.local_remote_pairs:
+                                await db.session.execute(
+                                    update(child_model)
+                                    .where(remote_col.in_(ids_to_delete))
+                                    .values(deleted_at=current_time)
+                                )
+
                     await db.session.execute(
                         update(self.model)
-                        .where(query.whereclause)
-                        .values(deleted_at=datetime.utcnow())
+                        .where(self.model.id.in_(ids_to_delete))
+                        .values(deleted_at=current_time)
                     )
                 else:
                     await db.session.execute(
