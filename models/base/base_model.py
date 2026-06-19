@@ -1,14 +1,12 @@
 import re
-from typing import Optional
 from sqlalchemy import func
-from pydantic import ConfigDict
-from typing import Type, Union, Any
 from datetime import datetime, timezone
 from sqlalchemy.orm import declared_attr
 from fastapi import HTTPException, Request
 from fastapi.exceptions import HTTPException
+from typing import Type, Union, Any, Optional
 from sqlmodel import SQLModel, TIMESTAMP, Field
-from pydantic import BaseModel, ValidationError, create_model
+from pydantic import BaseModel, ValidationError, ConfigDict, create_model
 
 class BaseModel(SQLModel):
     model_config = ConfigDict(
