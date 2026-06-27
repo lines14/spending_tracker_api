@@ -1,7 +1,8 @@
 from sqlmodel import Field
 from models.base.base_model import BaseModel
+from models.base.optional_fields import WithTimestamps, WithSoftDelete
 
-class ErrorLog(BaseModel, table=True):
+class ErrorLog(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     file: str = Field(nullable=True)
     line: int = Field(nullable=True)
     snippet: str = Field(nullable=True)

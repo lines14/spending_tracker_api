@@ -1,11 +1,12 @@
 from typing import TYPE_CHECKING
 from sqlmodel import Field, Relationship
 from models.base.base_model import BaseModel
+from models.base.optional_fields import WithTimestamps, WithSoftDelete
 
 if TYPE_CHECKING:
     from .bank_account import BankAccount
 
-class User(BaseModel, table=True):
+class User(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     login: str = Field(index=True, nullable=False)
     hashed_password: str = Field(nullable=False)
     
