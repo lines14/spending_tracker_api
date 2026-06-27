@@ -1,4 +1,3 @@
-from typing import Optional
 from dto.base import BaseDTO
 
 class SessionDTO(BaseDTO):
@@ -9,4 +8,3 @@ class SessionDTO(BaseDTO):
     token: str
     created_at: str
     updated_at: str
-    deleted_at: Optional[str]
