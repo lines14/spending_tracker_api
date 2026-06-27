@@ -1,6 +1,6 @@
 from fastapi import Response
-from services import GreetingsService
+from utils import DataUtils, ResponseUtils
 
 class GreetingsController:
     async def greetings() -> Response:
-        return await GreetingsService().greetings()
+        return await ResponseUtils.success(DataUtils.responses.info_message)

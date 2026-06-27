@@ -7,6 +7,7 @@ from utils import Logger, ResponseUtils, DataUtils
 from starlette.middleware.base import BaseHTTPMiddleware
 from dto import StackElementDTO, ErrorInfoDTO, ReceiveDTO
 from repositories.base.base_repository import BaseRepository
+from exceptions.base.base_custom_exception import BaseCustomException
 
 class LogErrorsMiddleware(BaseHTTPMiddleware):
     def __init__(self, app):
@@ -29,6 +30,13 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
         
         try:
             return await call_next(request)
+        except BaseCustomException as bce:
+            return await ResponseUtils.error(
+                request=None, 
+                msg=bce.message, 
+                data=bce.data,
+                status_code=bce.status_code
+            )
         except Exception as e:
             if isinstance(e, (AttributeError, KeyError)):
                 e = ValueError(DataUtils.responses.invalid_relationship_path_error_message.format(key=e))

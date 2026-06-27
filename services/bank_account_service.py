@@ -1,55 +1,43 @@
+from utils import DataUtils
 from models import BankAccount, User
-from fastapi import Request, Response
-from utils import DataUtils, ResponseUtils
 from dto import BankAccountDTO, BankAccountCreateDTO
 from repositories.user_repository import UserRepository
 from repositories.bank_account_repository import BankAccountRepository
+from exceptions import UserNotFoundException, BankAccountNotFoundException
 
 class BankAccountService:
-    async def create_bank_account(self, request: Request, bank_account: BankAccountCreateDTO) -> Response:
+    async def create_bank_account(self, bank_account: BankAccountCreateDTO) -> None:
         search_by = DataUtils.extract_parent_foreign_id_as_id(bank_account.model_dump(), User, BankAccount)
-        existing_user = await UserRepository().get_user(search_by)
+        user = await UserRepository().get_user(search_by)
 
-        if existing_user:
-            await BankAccountRepository().create_bank_account(bank_account)
-            
-            return await ResponseUtils.success(DataUtils.responses.bank_account_created_message)
-        else:
-            return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
+        if not user:
+            raise UserNotFoundException()
         
-    async def get_bank_account(self, request: Request, search_by: dict, with_relations: bool) -> Response:
+        await BankAccountRepository().create_bank_account(bank_account)
+        
+    async def get_bank_account(self, search_by: dict, with_relations: bool) -> BankAccountDTO:
         bank_account_repository = BankAccountRepository()
 
-        existing_bank_account = await bank_account_repository.get_bank_account(search_by, with_relations)
+        bank_account = await bank_account_repository.get_bank_account(search_by, with_relations)
 
-        if not existing_bank_account:
-            return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
+        if not bank_account:
+            raise BankAccountNotFoundException()
 
-        return await ResponseUtils.success(
-            DataUtils.responses.bank_account_received_message,
-            BankAccountDTO(**existing_bank_account.model_dump()).model_dump()
-        )
+        return BankAccountDTO(**bank_account.model_dump())
         
-    async def get_bank_accounts(self, search_by: dict, with_relations: bool) -> Response:
-        existing_bank_accounts = await BankAccountRepository().get_bank_accounts(search_by, with_relations)
+    async def get_bank_accounts(self, search_by: dict, with_relations: bool) -> list[BankAccountDTO]:
+        bank_accounts = await BankAccountRepository().get_bank_accounts(search_by, with_relations)
 
-        return await ResponseUtils.success(
-            DataUtils.responses.bank_accounts_received_message, 
-            [BankAccountDTO(**item.model_dump()).model_dump() for item in existing_bank_accounts]
-        )
+        return [BankAccountDTO(**bank_account.model_dump()) for bank_account in bank_accounts]
 
-    async def delete_bank_account(self, request: Request, search_by: dict, soft_delete: bool) -> Response:
+    async def delete_bank_account(self, search_by: dict, soft_delete: bool) -> None:
         bank_account_repository = BankAccountRepository()
-        existing_bank_account = await bank_account_repository.get_bank_account(search_by)
+        bank_account = await bank_account_repository.get_bank_account(search_by)
 
-        if existing_bank_account:
-            await bank_account_repository.delete_bank_account(search_by, soft_delete)
-            
-            return await ResponseUtils.success(DataUtils.responses.bank_account_deleted_message.format(id=DataUtils.dict_to_model(search_by).id))
-        else:
-            return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
+        if not bank_account:
+            raise BankAccountNotFoundException()
         
-    async def delete_all_bank_accounts(self, soft_delete: bool) -> Response:
+        await bank_account_repository.delete_bank_account(search_by, soft_delete)
+        
+    async def delete_all_bank_accounts(self, soft_delete: bool) -> None:
         await BankAccountRepository().delete_all_bank_accounts(soft_delete)
-            
-        return await ResponseUtils.success(DataUtils.responses.bank_accounts_deleted_message)
