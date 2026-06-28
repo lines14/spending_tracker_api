@@ -6,7 +6,7 @@
     "token_expired_error": ["Token expired", "", 401],
     "invalid_token_error": ["Invalid token", "", 401],
     "invalid_credentials_error": ["Invalid credentials", "", 401],
-    "user_exists_error": ["User already exists", "", 409],
+    "user_exists_error": ["User with this login already exists", "", 409],
     "purchase_not_found_error": ["Purchase not found", "", 404],
     "bank_account_not_found_error": ["Bank account not found", "", 404],
 
