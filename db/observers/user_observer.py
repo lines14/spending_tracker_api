@@ -20,7 +20,7 @@ class UserObserver(BaseObserver):
         if event_type in ('update', 'delete'):
             keys.append(redis_client.create_key('user', target.id))
             keys.append(redis_client.create_key('user_with_relations', target.id))
-            keys.append(redis_client.create_key('login', target.login))
+            keys.append(redis_client.create_key(target.login))
             keys.append(redis_client.create_key('session', target.id))
 
             query = select(BankAccount.id).where(BankAccount.user_id == target.id)
