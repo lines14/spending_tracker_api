@@ -6,7 +6,10 @@ class UserService:
     async def create_user(self, credentials: CredentialsDTO) -> UserDTO:
         user_repository = UserRepository()
 
-        existing_id = await user_repository.get_user_id_by_login(credentials.login)
+        existing_id = await user_repository.get_user_id_by_login(
+            credentials.login, 
+            with_soft_deleted=True
+        )
 
         if existing_id:
             raise UserExistsException()
@@ -35,6 +38,15 @@ class UserService:
 
         if not existing_user:
             raise UserNotFoundException()
+
+        if user.login:
+            existing_id = await user_repository.get_user_id_by_login(
+                user.login, 
+                with_soft_deleted=True
+            )
+
+            if existing_id:
+                raise UserExistsException()
 
         updated_user = await user_repository.update_user(
             search_by, 

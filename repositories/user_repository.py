@@ -49,12 +49,16 @@ class UserRepository(BaseRepository):
 
         return UserDTO(**json.loads(stringified_user))
     
-    async def get_user_id_by_login(self, login: str) -> Optional[int]:
+    async def get_user_id_by_login(
+        self, 
+        login: str, 
+        with_soft_deleted: bool = False
+    ) -> Optional[int]:
         redis_client = RedisClient()
         id = await redis_client.get(login)
 
         if not id:
-            result = await self.get_one_or_none({"login": login})
+            result = await self.get_one_or_none({"login": login}, with_soft_deleted)
 
             if not result:
                 return None

@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from .bank_account import BankAccount
 
 class User(BaseModel, WithTimestamps, WithSoftDelete, table=True):
-    login: str = Field(index=True, nullable=False)
+    login: str = Field(unique=True, nullable=False)
     hashed_password: str = Field(nullable=False)
     
     bank_accounts: list["BankAccount"] = Relationship(

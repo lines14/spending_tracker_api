@@ -23,7 +23,7 @@ class BaseRepository:
     async def get_first(
         self, 
         target: Union[dict, SQLModel],
-        with_soft_deleted: bool = False
+        with_soft_deleted: bool
     ) -> Optional[Any]:
         async with BaseDB() as db:
             query = db.build_select_query(self.model, target, with_soft_deleted)
@@ -34,7 +34,7 @@ class BaseRepository:
     async def get_one_or_none(
         self, 
         target: Union[dict, SQLModel], 
-        with_soft_deleted: bool = False
+        with_soft_deleted: bool
     ) -> Optional[Any]:
         async with BaseDB() as db:
             query = db.build_select_query(self.model, target, with_soft_deleted)
@@ -62,7 +62,7 @@ class BaseRepository:
         self, 
         target: Union[dict, SQLModel], 
         keys: list[str], 
-        with_soft_deleted: bool = False
+        with_soft_deleted: bool
     ) -> Optional[Any]:
         async with BaseDB() as db:
             query = db.build_select_query_with_joinedload(self.model, target, keys, with_soft_deleted)
@@ -78,7 +78,7 @@ class BaseRepository:
         self, 
         target: Union[dict, SQLModel], 
         keys: list[str], 
-        with_soft_deleted: bool = False
+        with_soft_deleted: bool
     ) -> Optional[Any]:
         async with BaseDB() as db:
             query = db.build_select_query_with_joinedload(self.model, target, keys, with_soft_deleted)
