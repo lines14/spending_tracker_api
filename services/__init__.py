@@ -2,5 +2,4 @@ from services.user_service import UserService
 from services.auth_service import AuthService
 from services.cache_service import CacheService
 from services.purchase_service import PurchaseService
-from services.template_service import TemplateService
 from services.bank_account_service import BankAccountService

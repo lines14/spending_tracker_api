@@ -1,71 +1,54 @@
-from fastapi import Response, Request
-from utils import DataUtils, ResponseUtils
 from dto import CredentialsDTO, UserDTO, UserUpdateDTO
 from repositories.user_repository import UserRepository
+from exceptions import UserExistsException, UserNotFoundException
 
 class UserService:
-    async def create_user(self, request: Request, credentials: CredentialsDTO) -> Response:
+    async def create_user(self, credentials: CredentialsDTO) -> UserDTO:
         user_repository = UserRepository()
 
         existing_id = await user_repository.get_user_id_by_login(credentials.login)
 
-        if not existing_id:
-            created_user = await user_repository.create_user(credentials)
-
-            return await ResponseUtils.success(
-                DataUtils.responses.user_created_message,
-                UserDTO(**created_user.model_dump()).model_dump()
-            )
-        else:
-            return await ResponseUtils.error(request, *DataUtils.responses.user_exists_error)
+        if existing_id:
+            raise UserExistsException()
         
-    async def get_user(self, request: Request, search_by: dict, with_relations: bool) -> Response:
-        existing_user = await UserRepository().get_user(search_by, with_relations)
+        user = await user_repository.create_user(credentials)
 
-        if not existing_user:
-            return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
+        return UserDTO(**user.model_dump())
+        
+    async def get_user(self, search_by: dict, with_relations: bool) -> UserDTO:
+        user = await UserRepository().get_user(search_by, with_relations)
 
-        return await ResponseUtils.success(
-            DataUtils.responses.user_received_message,
-            UserDTO(**existing_user.model_dump()).model_dump()
-        )
+        if not user:
+            raise UserNotFoundException()
+
+        return UserDTO(**user.model_dump())
     
-    async def get_users(self, search_by: dict, with_relations: bool) -> Response:
-        existing_users = await UserRepository().get_users(search_by, with_relations)
+    async def get_users(self, search_by: dict, with_relations: bool) -> list[UserDTO]:
+        users = await UserRepository().get_users(search_by, with_relations)
 
-        return await ResponseUtils.success(
-            DataUtils.responses.users_received_message, 
-            [UserDTO(**item.model_dump()).model_dump() for item in existing_users]
-        )
+        return [UserDTO(**user.model_dump()) for user in users]
 
-    async def update_user(self, request: Request, search_by: dict, user: UserUpdateDTO) -> Response:
+    async def update_user(self, search_by: dict, user: UserUpdateDTO) -> UserDTO:
         user_repository = UserRepository()
 
-        existing_user = await user_repository.get_user(search_by, with_soft_deleted=True)
+        existing_user = await user_repository.get_user(search_by)
 
         if not existing_user:
-            return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
+            raise UserNotFoundException()
 
         updated_user = await user_repository.update_user(
             search_by, 
             user.model_dump(exclude_unset=True)
         )
 
-        return await ResponseUtils.success(
-            DataUtils.responses.user_updated_message.format(id=DataUtils.dict_to_model(search_by).id),
-            UserDTO(**updated_user.model_dump()).model_dump()
-        )
+        return UserDTO(**updated_user.model_dump())
 
-    async def delete_user(self, request: Request, search_by: dict, soft_delete: bool) -> Response:
+    async def delete_user(self, search_by: dict, soft_delete: bool) -> None:
         user_repository = UserRepository()
 
-        existing_user = await user_repository.get_user(search_by)
+        user = await user_repository.get_user(search_by)
 
-        if existing_user:
-            await user_repository.delete_user(search_by, soft_delete)
-            
-            return await ResponseUtils.success(
-                DataUtils.responses.user_deleted_message.format(id=DataUtils.dict_to_model(search_by).id)
-            )
-        else:
-            return await ResponseUtils.error(request, *DataUtils.responses.user_not_found_error)
+        if not user:
+            raise UserNotFoundException()
+        
+        await user_repository.delete_user(search_by, soft_delete)

@@ -1,9 +1,20 @@
-from services import TemplateService
-from fastapi import Request, Response, Depends
+from sys import version
+from fastapi.templating import Jinja2Templates
+from fastapi import Request, Response, __version__
+from dto import ResponseTemplateDTO, ResponseTemplateContextDTO
 
 class TemplateController:
     async def get_template(
-        request: Request, 
-        service: TemplateService = Depends()
+        request: Request
     ) -> Response:
-        return await service.get_template(request)
+        data = ResponseTemplateContextDTO(
+            request=request, 
+            pythonVersion=version, 
+            fastapiVersion=__version__
+        )
+
+        templates = Jinja2Templates(directory="../templates")
+        template = templates.TemplateResponse("index.html", data.model_dump())
+        ResponseTemplateDTO(**vars(template))
+        
+        return template

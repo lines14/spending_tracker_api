@@ -16,9 +16,7 @@ class BankAccountService:
         await BankAccountRepository().create_bank_account(bank_account)
         
     async def get_bank_account(self, search_by: dict, with_relations: bool) -> BankAccountDTO:
-        bank_account_repository = BankAccountRepository()
-
-        bank_account = await bank_account_repository.get_bank_account(search_by, with_relations)
+        bank_account = await BankAccountRepository().get_bank_account(search_by, with_relations)
 
         if not bank_account:
             raise BankAccountNotFoundException()

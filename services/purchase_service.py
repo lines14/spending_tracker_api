@@ -1,40 +1,34 @@
-from fastapi import Response, Request
+from utils import DataUtils
 from models import Purchase, BankAccount
-from utils import DataUtils, ResponseUtils
 from dto import PurchaseDTO, PurchaseCreateDTO
 from repositories.purchase_repository import PurchaseRepository
 from repositories.bank_account_repository import BankAccountRepository
+from exceptions import BankAccountNotFoundException, PurchaseNotFoundException
 
 class PurchaseService:        
-    async def create_purchase(self, request: Request, purchase: PurchaseCreateDTO) -> Response:
+    async def create_purchase(self, purchase: PurchaseCreateDTO) -> None:
         search_by = DataUtils.extract_parent_foreign_id_as_id(purchase.model_dump(), BankAccount, Purchase)
-        existing_bank_account = await BankAccountRepository().get_bank_account(search_by)
+        bank_account = await BankAccountRepository().get_bank_account(search_by)
 
-        if existing_bank_account:
-            await PurchaseRepository().create_purchase(purchase)
+        if not bank_account:
+            raise BankAccountNotFoundException()
             
-            return await ResponseUtils.success(DataUtils.responses.purchase_created_message)
-        else:
-            return await ResponseUtils.error(request, *DataUtils.responses.bank_account_not_found_error)
+        await PurchaseRepository().create_purchase(purchase)
         
-    async def get_purchase(self, request: Request, search_by: dict) -> Response:
-        existing_purchase = await PurchaseRepository().get_purchase(search_by)
+    async def get_purchase(self, search_by: dict) -> PurchaseDTO:
+        purchase = await PurchaseRepository().get_purchase(search_by)
 
-        if existing_purchase:
-            return await ResponseUtils.success(
-                DataUtils.responses.purchase_received_message, 
-                PurchaseDTO(**existing_purchase.model_dump()).model_dump()
-            )
-        else:
-            return await ResponseUtils.error(request, *DataUtils.responses.purchase_not_found_error)
+        if not purchase:
+            raise PurchaseNotFoundException()
+        
+        return PurchaseDTO(**purchase.model_dump())
+        
 
-    async def delete_purchase(self, request: Request, search_by: dict, soft_delete: bool) -> Response:
+    async def delete_purchase(self, search_by: dict, soft_delete: bool) -> None:
         purchase_repository = PurchaseRepository()
-        existing_purchase = await purchase_repository.get_purchase(search_by)
+        purchase = await purchase_repository.get_purchase(search_by)
 
-        if existing_purchase:
-            await purchase_repository.delete_purchase(search_by, soft_delete)
-            
-            return await ResponseUtils.success(DataUtils.responses.purchase_deleted_message.format(id=DataUtils.dict_to_model(search_by).id))
-        else:
-            return await ResponseUtils.error(request, *DataUtils.responses.purchase_not_found_error)
+        if not purchase:
+            raise PurchaseNotFoundException()
+        
+        await purchase_repository.delete_purchase(search_by, soft_delete)
