@@ -99,11 +99,12 @@ class BaseRepository:
     async def update_one(
         self, 
         target: dict, 
-        fields_to_update: dict
+        fields_to_update: dict,
+        with_soft_deleted: bool = False
     ) -> Optional[Any]:
         async with BaseDB() as db:
             async with db.session.begin():
-                query = db.build_select_query(self.model, target, with_soft_deleted=False)
+                query = db.build_select_query(self.model, target, with_soft_deleted)
                 result = await db.session.execute(query)
                 record = result.scalars().one_or_none()
 
@@ -116,11 +117,12 @@ class BaseRepository:
     async def update_all(
         self, 
         target: dict, 
-        fields_to_update: dict
+        fields_to_update: dict,
+        with_soft_deleted: bool = False
     ) -> list[Any]:
         async with BaseDB() as db:
             async with db.session.begin():
-                query = db.build_select_query(self.model, target, with_soft_deleted=False)
+                query = db.build_select_query(self.model, target, with_soft_deleted)
                 result = await db.session.execute(query.order_by(desc(self.model.id)))
                 records = result.scalars().all()
 

@@ -27,7 +27,7 @@ class PurchaseRepository(BaseRepository):
         stringified_purchase = None if with_soft_deleted else await redis_client.get(key)
 
         if not stringified_purchase:
-            result = await self.get_one_or_none(search_by)
+            result = await self.get_one_or_none(search_by, with_soft_deleted)
 
             if not result:
                 return None
