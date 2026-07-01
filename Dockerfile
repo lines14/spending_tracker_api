@@ -4,6 +4,9 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV POETRY_VERSION=1.8.3 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_NO_INTERACTION=1
 
 RUN apk update && apk add bash alpine-sdk gcc musl-dev python3-dev libffi-dev openssl-dev
 
@@ -12,8 +15,10 @@ RUN chown -R myuser:mygroup /app
 
 ENV PATH=$PATH:/home/myuser/.local/bin
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN curl -sSL https://install.python-poetry.org | python3 -
+ENV PATH=$PATH:/root/.local/bin:/home/myuser/.local/bin
+COPY pyproject.toml poetry.lock* ./
+RUN poetry install --no-root
 
 COPY . .
 
