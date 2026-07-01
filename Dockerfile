@@ -8,7 +8,7 @@ ENV POETRY_VERSION=1.8.3 \
     POETRY_VIRTUALENVS_CREATE=false \
     POETRY_NO_INTERACTION=1
 
-RUN apk update && apk add bash alpine-sdk gcc musl-dev python3-dev libffi-dev openssl-dev
+RUN apk update && apk add bash alpine-sdk gcc musl-dev python3-dev libffi-dev openssl-dev curl
 
 RUN addgroup -g 1000 mygroup && adduser -u 1000 -G mygroup -S myuser
 RUN chown -R myuser:mygroup /app
