@@ -1,6 +1,7 @@
 import os
 import sys
 from datetime import datetime
+
 cwd = os.getcwd()
 
 if len(sys.argv) < 2 or len(sys.argv) > 2:
@@ -11,10 +12,10 @@ else:
     file_name = name.replace(' ', '_')
     class_name = ''.join([word.capitalize() for word in name.split()])
     version = datetime.now().strftime("_%Y_%m_%d_%H%M%S")
-    
+
     print(f'  Generating /app/db/seeders/{version}_{file_name}.py ...  done')
 
-    content = f"""import asyncio
+    content = f"""import asyncio\n
 from db.seeders.base.base_seeder import BaseSeeder
 from repositories.base.base_repository import BaseRepository\n
 class {class_name}(BaseSeeder):
@@ -35,6 +36,6 @@ class {class_name}(BaseSeeder):
 
     with open(os.path.join(cwd, 'db/seeders', version + '_' + file_name + '.py'), 'w') as file:
         file.write(content)
-        
+
     with open(os.path.join(cwd, 'db/seeders/__init__.py'), 'a') as file:
         file.write(f'\nfrom .{version}_{file_name} import {class_name}')

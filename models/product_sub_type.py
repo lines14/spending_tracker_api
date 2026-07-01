@@ -1,6 +1,8 @@
 from sqlmodel import Field
+
 from models.base.base_model import BaseModel
-from models.base.optional_fields import WithTimestamps, WithSoftDelete
+from models.base.optional_fields import WithSoftDelete, WithTimestamps
+
 
 class ProductSubType(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     sub_type: str = Field(nullable=False)

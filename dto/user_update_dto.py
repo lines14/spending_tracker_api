@@ -1,30 +1,33 @@
-from typing import Optional, ClassVar
-from utils.data_utils import DataUtils
+from typing import ClassVar
+
 from pydantic import Field, model_validator
+
 from dto.base import BaseDTO, StringValidator
+from utils.data_utils import DataUtils
+
 
 class UserUpdateDTO(BaseDTO):
     max_length: ClassVar[int] = 20
     login_min_length: ClassVar[int] = 4
     password_min_length: ClassVar[int] = 6
 
-    id: Optional[int] = None
+    id: int | None = None
 
-    login: Optional[str] = Field(
+    login: str | None = Field(
         default=None,
         description=DataUtils.responses.login_validation_message,
         min_length=login_min_length,
         max_length=max_length
     )
 
-    password: Optional[str] = Field(
+    password: str | None = Field(
         default=None,
         description=DataUtils.responses.password_validation_message,
         min_length=password_min_length,
         max_length=max_length
     )
 
-    hashed_password: Optional[str] = None
+    hashed_password: str | None = None
 
     @model_validator(mode="after")
     @classmethod

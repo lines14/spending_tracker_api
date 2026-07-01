@@ -1,12 +1,15 @@
 from typing import Any
+
 from pydantic import BaseModel
+
 from repositories.base.redis_client import RedisClient
+
 
 class CacheUtils:
     @staticmethod
     def extract_cache_tags_from_dto(dto: BaseModel) -> list[str]:
         tags = []
-        
+
         def walk(obj: Any):
             if isinstance(obj, BaseModel):
                 for field_name, field_value in obj.__dict__.items():
@@ -18,10 +21,10 @@ class CacheUtils:
                             tags.append(field_name)
                             for item in field_value:
                                 walk(item)
-                                
+
         walk(dto)
         return list(set(tags))
-    
+
     @staticmethod
     async def cascade_invalidate_bank_account_cache(redis_client: RedisClient):
         prefixes = [
@@ -33,13 +36,13 @@ class CacheUtils:
         ]
 
         keys = [
-            "users", 
-            "users_with_relations", 
-            "bank_accounts", 
-            "bank_accounts_with_relations", 
+            "users",
+            "users_with_relations",
+            "bank_accounts",
+            "bank_accounts_with_relations",
             "purchases"
         ]
-        
+
         for prefix in prefixes:
             await redis_client.delete_by_prefix(prefix)
         for key in keys:

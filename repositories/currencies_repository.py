@@ -1,7 +1,9 @@
-from os import getenv
 from datetime import datetime
+from os import getenv
+
 from dto import CurrencyRateRequestDTO
 from repositories.base.http_client import HTTPClient
+
 
 class CurrenciesRepository(HTTPClient):
     def __init__(self):
@@ -13,5 +15,5 @@ class CurrenciesRepository(HTTPClient):
         params = CurrencyRateRequestDTO(
             fdate=datetime.now().strftime('%d.%m.%Y')
         )
-        
+
         return await self.get('/rss/get_rates.cfm', params.model_dump())

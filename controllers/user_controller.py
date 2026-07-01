@@ -1,14 +1,15 @@
-from fastapi import Query
-from typing import Optional
 from typing import Annotated
+
+from fastapi import Body, Depends, Path, Query, Request, Response
+
+from dto import CredentialsDTO, UserUpdateDTO
 from services import UserService
 from utils import DataUtils, ResponseUtils
-from dto import CredentialsDTO, UserUpdateDTO
-from fastapi import Request, Response, Path, Body, Depends
+
 
 class UserController:
     async def create_user(
-        request: Request, 
+        request: Request,
         credentials: CredentialsDTO,
         service: UserService = Depends()
     ) -> Response:
@@ -18,11 +19,11 @@ class UserController:
             DataUtils.responses.user_created_message,
             user.model_dump()
         )
-    
+
     async def get_user(
-        request: Request, 
-        id: int, 
-        with_relations: Optional[bool] = False,
+        request: Request,
+        id: int,
+        with_relations: bool | None = False,
         service: UserService = Depends()
     ) -> Response:
         user = await service.get_user(locals(), with_relations)
@@ -31,22 +32,22 @@ class UserController:
             DataUtils.responses.user_received_message,
             user.model_dump()
         )
-    
+
     async def get_users(
-        id: Optional[list[int]] = Query(None, alias="ids"),
-        with_relations: Optional[bool] = False,
+        id: list[int] | None = Query(None, alias="ids"),
+        with_relations: bool | None = False,
         service: UserService = Depends()
     ) -> Response:
         users = await service.get_users(locals(), with_relations)
 
         return await ResponseUtils.success(
-            DataUtils.responses.users_received_message, 
+            DataUtils.responses.users_received_message,
             [user.model_dump() for user in users]
         )
-    
+
     async def update_user(
-        request: Request, 
-        user: Annotated[UserUpdateDTO, Body(...)], 
+        request: Request,
+        user: Annotated[UserUpdateDTO, Body(...)],
         id: int = Path(...),
         service: UserService = Depends()
     ) -> Response:
@@ -58,9 +59,9 @@ class UserController:
         )
 
     async def delete_user(
-        request: Request, 
-        id: int, 
-        soft_delete: Optional[bool] = True,
+        request: Request,
+        id: int,
+        soft_delete: bool | None = True,
         service: UserService = Depends()
     ) -> Response:
         await service.delete_user(locals(), soft_delete)

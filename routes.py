@@ -1,7 +1,8 @@
-from controllers import *
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
-from dto import ResponseContentDTO, BankAccountDTO, PurchaseDTO, UserDTO
+
+from controllers import *
+from dto import BankAccountDTO, PurchaseDTO, ResponseContentDTO, UserDTO
 
 router = APIRouter()
 router.get("/", response_class=HTMLResponse)(TemplateController.get_template)

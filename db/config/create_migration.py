@@ -1,6 +1,7 @@
-import sys
 import subprocess
+import sys
 from datetime import datetime
+
 
 def create_migration(name, version):
     command = [
@@ -8,7 +9,7 @@ def create_migration(name, version):
         "--message", name,
         "--rev-id", version
     ]
-    
+
     subprocess.run(command, check=True)
 
 if len(sys.argv) < 2 or len(sys.argv) > 2:

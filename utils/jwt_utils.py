@@ -1,25 +1,28 @@
-import jwt
 import json
+from datetime import datetime, timedelta
 from os import getenv
+
+import jwt
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
+
 from dto import JWTDTO
 from utils.data_utils import DataUtils
-from datetime import datetime, timedelta
 from utils.storage_utils import StorageUtils
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
+
 
 class JWTUtils:
     @staticmethod
     def generate_token(id: str) -> str:
         payload = JWTDTO(
-            id=id, 
+            id=id,
             exp=datetime.utcnow() + timedelta(seconds=int(getenv('TOKEN_TTL')))
         )
 
         return jwt.encode(
-            payload.model_dump(), 
-            StorageUtils.private_key, 
+            payload.model_dump(),
+            StorageUtils.private_key,
             algorithm=getenv('ENCODE_ALGORITHM')
         )
 
@@ -27,18 +30,17 @@ class JWTUtils:
     def verify_token(cls, token: str) -> dict:
         try:
             return jwt.decode(
-                token, 
-                cls.__parse_public_key(StorageUtils.public_key), 
+                token,
+                cls.__parse_public_key(StorageUtils.public_key),
                 algorithms=[getenv('ENCODE_ALGORITHM')],
                 options={"verify_exp": False}
             )
-        except jwt.ExpiredSignatureError as e:
+        except jwt.ExpiredSignatureError:
             raise jwt.ExpiredSignatureError(json.dumps(DataUtils.responses.token_expired_error))
-        except jwt.InvalidTokenError as e:
+        except jwt.InvalidTokenError:
             raise jwt.InvalidTokenError(json.dumps(DataUtils.responses.invalid_token_error))
-    
+
     @staticmethod
     def __parse_public_key(key_pem: str) -> PublicKeyTypes:
         key_bytes = key_pem.encode()
-        
         return serialization.load_pem_public_key(key_bytes, backend=default_backend())

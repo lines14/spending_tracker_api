@@ -1,7 +1,9 @@
+import inspect
 import os
 import sys
-import inspect
+
 from db.seeders import *
+
 sys.path.append(os.getcwd())
 from dotenv import load_dotenv
 
@@ -16,7 +18,7 @@ else:
     if seeder_name == 'all':
         seeders = [cls for name, cls in globals().items() if inspect.isclass(cls)]
         sorted_seeders = sorted(seeders, key=lambda cls: cls.revision)
-        
+
         for seeder in sorted_seeders:
             print(f'INFO  Running {seeder.__name__} seeder')
             seeder()

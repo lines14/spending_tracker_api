@@ -1,5 +1,5 @@
-from services.user_service import UserService
 from services.auth_service import AuthService
+from services.bank_account_service import BankAccountService
 from services.cache_service import CacheService
 from services.purchase_service import PurchaseService
-from services.bank_account_service import BankAccountService
+from services.user_service import UserService

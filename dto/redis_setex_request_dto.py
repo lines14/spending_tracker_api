@@ -1,5 +1,7 @@
-from dto.base import BaseDTO
 from pydantic import field_validator
+
+from dto.base import BaseDTO
+
 
 class RedisSetexRequestDTO(BaseDTO):
     name: str
@@ -11,5 +13,5 @@ class RedisSetexRequestDTO(BaseDTO):
     def cast_str_env_to_int(cls, value):
         if isinstance(value, str):
             return int(value)
-        
+
         return value

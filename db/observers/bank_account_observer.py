@@ -1,7 +1,9 @@
 from sqlalchemy import select
+
+from db.observers.base.base_observer import BaseObserver
 from models import BankAccount, Purchase
 from repositories.base.redis_client import RedisClient
-from db.observers.base.base_observer import BaseObserver
+
 
 class BankAccountObserver(BaseObserver):
     model = BankAccount
@@ -29,7 +31,7 @@ class BankAccountObserver(BaseObserver):
 
             for purchase_id in purchase_ids:
                 keys.append(redis_client.create_key('purchase', purchase_id))
-            
+
             if purchase_ids:
                 keys.append(redis_client.create_key('purchases'))
 

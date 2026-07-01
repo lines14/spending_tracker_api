@@ -1,7 +1,9 @@
 from sqlalchemy import select
-from models import Purchase, BankAccount
-from repositories.base.redis_client import RedisClient
+
 from db.observers.base.base_observer import BaseObserver
+from models import BankAccount, Purchase
+from repositories.base.redis_client import RedisClient
+
 
 class PurchaseObserver(BaseObserver):
     model = Purchase

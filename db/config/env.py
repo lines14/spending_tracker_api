@@ -1,13 +1,14 @@
-import os
 import asyncio
+import os
 import traceback
-from typing import Dict
-from config import Config
-from alembic import context
 from logging.config import fileConfig
-from sqlalchemy.engine import reflection
-from sqlalchemy import engine_from_config, pool, text
+
+from alembic import context
 from alembic.runtime.migration import MigrationContext
+from sqlalchemy import engine_from_config, pool, text
+from sqlalchemy.engine import reflection
+
+from config import Config
 from repositories.base.redis_client import RedisClient
 
 # this is the Alembic Config object, which provides
@@ -27,8 +28,9 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 
-from models import *
 from sqlmodel import SQLModel
+
+from models import *
 from utils.logger import Logger
 
 target_metadata = SQLModel.metadata
@@ -44,7 +46,7 @@ def has_table(engine, table_name):
 
     return table_name in tables
 
-def filter_migrations(migrations: Dict[str, any], version: tuple) -> Dict[str, any]:
+def filter_migrations(migrations: dict[str, any], version: tuple) -> dict[str, any]:
     sorted_keys = sorted(migrations.keys())
 
     if len(version) != 0:
@@ -89,10 +91,10 @@ def log_migrations(connection, version, migrations):
                     "INSERT INTO migrations (version, name) VALUES (:version, :name) "
                     "ON DUPLICATE KEY UPDATE name = :name;"
                 )
-                
+
                 connection.execute(sql, {"version": key, "name": value})
                 connection.commit()
-            except Exception as e:
+            except Exception:
                 Logger.log('\n' + '-' * 100 + '\n')
                 Logger.log(traceback.format_exc())
 
@@ -139,7 +141,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
+            connection=connection,
             target_metadata=target_metadata
         )
 

@@ -1,13 +1,14 @@
 import json
 from os import getenv
-from utils import DataUtils
-from typing import Optional
-from models.purchase import Purchase
-from dto import PurchaseDTO, RedisSetexRequestDTO
-from repositories.base.redis_client import RedisClient
-from repositories.base.base_repository import BaseRepository
 
-class PurchaseRepository(BaseRepository):    
+from dto import PurchaseDTO, RedisSetexRequestDTO
+from models.purchase import Purchase
+from repositories.base.base_repository import BaseRepository
+from repositories.base.redis_client import RedisClient
+from utils import DataUtils
+
+
+class PurchaseRepository(BaseRepository):
     def __init__(self):
         super().__init__(model=Purchase)
 
@@ -16,10 +17,10 @@ class PurchaseRepository(BaseRepository):
         await self.create(purchase)
 
     async def get_purchase(
-        self, 
-        search_by: dict, 
+        self,
+        search_by: dict,
         with_soft_deleted: bool = False
-    ) -> Optional[PurchaseDTO]:
+    ) -> PurchaseDTO | None:
         redis_client = RedisClient()
 
         search_by = DataUtils.filter_search_fields(search_by, self.model)
@@ -35,7 +36,7 @@ class PurchaseRepository(BaseRepository):
             stringified_purchase = json.dumps(result.model_dump(), default=str)
 
             data = RedisSetexRequestDTO(
-                name=key, 
+                name=key,
                 time=getenv('FIN_DATA_TTL'),
                 value=stringified_purchase
             )

@@ -1,6 +1,8 @@
 from sqlmodel import Field
+
 from models.base.base_model import BaseModel
-from models.base.optional_fields import WithTimestamps, WithSoftDelete
+from models.base.optional_fields import WithSoftDelete, WithTimestamps
+
 
 class CurrencyRate(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     rate: float = Field(nullable=False)

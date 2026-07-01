@@ -1,6 +1,8 @@
 import asyncio
-from models import Currency
+
 from db.seeders.base.base_seeder import BaseSeeder
+from models import Currency
+
 
 class Currencies(BaseSeeder):
     revision: str = '_2024_08_18_103405'
@@ -17,5 +19,5 @@ class Currencies(BaseSeeder):
             ]
 
             await self.seed(data_list)
-            
+
         asyncio.run(seed())

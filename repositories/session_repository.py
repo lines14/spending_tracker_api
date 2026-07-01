@@ -1,13 +1,14 @@
 import json
 from os import getenv
-from models import Session
-from typing import Optional
-from utils import CryptographyUtils
-from dto import RedisSetexRequestDTO, SessionDTO
-from repositories.base.redis_client import RedisClient
-from repositories.base.base_repository import BaseRepository
 
-class SessionRepository(BaseRepository):    
+from dto import RedisSetexRequestDTO, SessionDTO
+from models import Session
+from repositories.base.base_repository import BaseRepository
+from repositories.base.redis_client import RedisClient
+from utils import CryptographyUtils
+
+
+class SessionRepository(BaseRepository):
     def __init__(self):
         super().__init__(model=Session)
 
@@ -17,7 +18,7 @@ class SessionRepository(BaseRepository):
         hashed_token = CryptographyUtils.hash_string(token)
 
         session = self.model(
-            user_id=user_id, 
+            user_id=user_id,
             token=hashed_token,
             host=headers.get('host'),
             user_agent=headers.get('user-agent')
@@ -30,13 +31,13 @@ class SessionRepository(BaseRepository):
 
         data = RedisSetexRequestDTO(
             name=key,
-            time=getenv('TOKEN_TTL'), 
+            time=getenv('TOKEN_TTL'),
             value=stringified_session
         )
 
         await redis_client.setex(**data.model_dump())
 
-    async def get_session(self, user_id: int) -> Optional[SessionDTO]:
+    async def get_session(self, user_id: int) -> SessionDTO | None:
         redis_client = RedisClient()
         key = redis_client.create_key('session', user_id)
         stringified_session = await redis_client.get(key)
@@ -45,7 +46,7 @@ class SessionRepository(BaseRepository):
             return None
 
         return SessionDTO(**json.loads(stringified_session))
-    
+
     async def delete_session(self, user_id: int) -> None:
         redis_client = RedisClient()
         key = redis_client.create_key('session', user_id)

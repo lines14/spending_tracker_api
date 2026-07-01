@@ -1,11 +1,13 @@
+from typing import TYPE_CHECKING, Optional
+
 from sqlmodel import Field, Relationship
-from typing import Optional, TYPE_CHECKING
+
 from models.base.base_model import BaseModel
-from models.base.optional_fields import WithTimestamps, WithSoftDelete
+from models.base.optional_fields import WithSoftDelete, WithTimestamps
 
 if TYPE_CHECKING:
-    from .user import User
     from .purchase import Purchase
+    from .user import User
 
 class BankAccount(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     account: str = Field(nullable=False)
@@ -14,9 +16,9 @@ class BankAccount(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     user_id: int = Field(index=True, nullable=False, foreign_key='users.id')
 
     user: Optional["User"] = Relationship(back_populates="bank_accounts")
-    
+
     purchases: list["Purchase"] = Relationship(
-        back_populates="bank_account", 
+        back_populates="bank_account",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
 

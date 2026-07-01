@@ -1,5 +1,7 @@
 from sqlalchemy import event
+
 from repositories.base.redis_client import RedisClient
+
 
 class BaseObserver:
     model = None
@@ -10,11 +12,11 @@ class BaseObserver:
             raise ValueError(f"Observer '{cls.__name__}' must define a 'model' attribute")
 
         possible_events = [
-            'before_insert', 
+            'before_insert',
             'after_insert',
-            'before_update', 
+            'before_update',
             'after_update',
-            'before_delete', 
+            'before_delete',
             'after_delete'
         ]
 
@@ -31,7 +33,7 @@ class BaseObserver:
     def __clear_cache(cls, event_type: str, target, connection):
         redis_client = RedisClient()
         keys = cls._get_redis_keys_for_cleanup(event_type, target, connection)
-        
+
         if not keys:
             return
 

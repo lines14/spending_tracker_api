@@ -1,5 +1,6 @@
-from utils import DataUtils
 from exceptions.base.base_custom_exception import BaseCustomException
+from utils import DataUtils
+
 
 class PurchaseNotFoundException(BaseCustomException):
     def __init__(self):

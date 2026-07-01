@@ -1,6 +1,8 @@
 import asyncio
-from models import BankAccountIssuer
+
 from db.seeders.base.base_seeder import BaseSeeder
+from models import BankAccountIssuer
+
 
 class BankAccountIssuers(BaseSeeder):
     revision: str = '_2024_09_15_124327'
@@ -25,5 +27,5 @@ class BankAccountIssuers(BaseSeeder):
             ]
 
             await self.seed(data_list)
-            
+
         asyncio.run(seed())

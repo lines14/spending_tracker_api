@@ -1,8 +1,9 @@
 from dto import CredentialsDTO
-from utils import JWTUtils, CryptographyUtils
 from exceptions import InvalidCredentialsException
-from repositories.user_repository import UserRepository
 from repositories.session_repository import SessionRepository
+from repositories.user_repository import UserRepository
+from utils import CryptographyUtils, JWTUtils
+
 
 class AuthService:
     async def auth(self, headers, credentials: CredentialsDTO) -> str:
@@ -11,7 +12,7 @@ class AuthService:
 
         if not id:
             raise InvalidCredentialsException()
-        
+
         existing_user = await user_repository.get_user(locals())
 
         if not existing_user or not CryptographyUtils.verify_string(credentials.password, existing_user.hashed_password):
@@ -19,5 +20,5 @@ class AuthService:
 
         token = JWTUtils.generate_token(id)
         await SessionRepository().create_session(id, token, headers)
-        
+
         return token

@@ -1,26 +1,28 @@
 import asyncio
-import aioschedule
-from routes import *
+from contextlib import asynccontextmanager
 from os import getenv
-from scheduler import *
-from middlewares import *
-from fastapi import FastAPI
+
+import aioschedule
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from db.base.base_db import BaseDB
 from db.observers import init_observers
-from contextlib import asynccontextmanager
-from fastapi.middleware.cors import CORSMiddleware
+from middlewares import *
+from routes import *
+from scheduler import *
 
 load_dotenv()
 
-async def start_scheduler():    
+async def start_scheduler():
     (aioschedule.every().hour.at(":10")
      .do(CurrencyRatesUpdaterSchedule().update_currency_rates))
-    
+
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
-        
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_observers()

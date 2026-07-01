@@ -1,7 +1,9 @@
 from typing import TYPE_CHECKING
+
 from sqlmodel import Field, Relationship
+
 from models.base.base_model import BaseModel
-from models.base.optional_fields import WithTimestamps, WithSoftDelete
+from models.base.optional_fields import WithSoftDelete, WithTimestamps
 
 if TYPE_CHECKING:
     from .bank_account import BankAccount
@@ -9,7 +11,7 @@ if TYPE_CHECKING:
 class User(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     login: str = Field(unique=True, nullable=False)
     hashed_password: str = Field(nullable=False)
-    
+
     bank_accounts: list["BankAccount"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"cascade": "all, delete-orphan"}

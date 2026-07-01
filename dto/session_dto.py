@@ -1,5 +1,6 @@
 from dto.base import BaseDTO
 
+
 class SessionDTO(BaseDTO):
     id: int
     user_id: int

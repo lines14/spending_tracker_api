@@ -1,9 +1,10 @@
-from utils import DataUtils
+from dto import BankAccountCreateDTO, BankAccountDTO
+from exceptions import BankAccountNotFoundException, UserNotFoundException
 from models import BankAccount, User
-from dto import BankAccountDTO, BankAccountCreateDTO
-from repositories.user_repository import UserRepository
 from repositories.bank_account_repository import BankAccountRepository
-from exceptions import UserNotFoundException, BankAccountNotFoundException
+from repositories.user_repository import UserRepository
+from utils import DataUtils
+
 
 class BankAccountService:
     async def create_bank_account(self, bank_account: BankAccountCreateDTO) -> None:
@@ -12,9 +13,9 @@ class BankAccountService:
 
         if not user:
             raise UserNotFoundException()
-        
+
         await BankAccountRepository().create_bank_account(bank_account)
-        
+
     async def get_bank_account(self, search_by: dict, with_relations: bool) -> BankAccountDTO:
         bank_account = await BankAccountRepository().get_bank_account(search_by, with_relations)
 
@@ -22,10 +23,9 @@ class BankAccountService:
             raise BankAccountNotFoundException()
 
         return BankAccountDTO(**bank_account.model_dump())
-        
+
     async def get_bank_accounts(self, search_by: dict, with_relations: bool) -> list[BankAccountDTO]:
         bank_accounts = await BankAccountRepository().get_bank_accounts(search_by, with_relations)
-
         return [BankAccountDTO(**bank_account.model_dump()) for bank_account in bank_accounts]
 
     async def delete_bank_account(self, search_by: dict, soft_delete: bool) -> None:
@@ -34,8 +34,8 @@ class BankAccountService:
 
         if not bank_account:
             raise BankAccountNotFoundException()
-        
+
         await bank_account_repository.delete_bank_account(search_by, soft_delete)
-        
+
     async def delete_all_bank_accounts(self, soft_delete: bool) -> None:
         await BankAccountRepository().delete_all_bank_accounts(soft_delete)

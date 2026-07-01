@@ -29,3 +29,39 @@ ruff = "^0.15.20"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+extend-exclude = [
+    "db/migrations/*"
+]
+
+[tool.ruff.lint]
+select = [
+    "F",      # Pyflakes (ошибки, неиспользуемый код)
+    "E", "W", # pycodestyle (стандартные правила PEP 8)
+    "I",      # isort (автоматическая сортировка импортов)
+    "N",      # pep8-naming (правильный регистр для классов, функций, переменных)
+    "UP",     # pyupgrade (принудительно переводит код на синтаксис новой версии Python)
+    "B",      # flake8-bugbear (находит скрытые баги и потенциальные проблемы)
+    "A",      # flake8-builtins (запрещает затенять встроенные функции, например, создавать переменную list=...)
+    "C4",     # flake8-comprehensions (оптимизация генераторов списков и словарей)
+    "RET",    # flake8-return (проверяет логику return, убирает лишние else)
+    "SIM",    # flake8-simplify (помогает писать код проще, убирая громоздкие конструкции)
+    "ARG",    # flake8-unused-arguments (находит неиспользуемые аргументы в функциях)
+    "ERA",    # eradicate (находит и заставляет удалять забытый закомментированный код)
+    "RUF",    # Собственные правила Ruff
+]
+
+ignore = [
+    "E501",    # Игнорирует длину строки линтера, так как за этим следит `ruff format`
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]    # Игнорирует неиспользуемые импорты в init-файлах
+
+[tool.poetry-exec-plugin.commands]
+"lint" = "ruff check ."
+"lint:fix" = "ruff check . --fix && ruff format ."

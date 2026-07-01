@@ -1,8 +1,9 @@
-from typing import Union
-from dto.base import BaseDTO
 from pydantic import StrictBool
+
+from dto.base import BaseDTO
+
 
 class ResponseContentDTO(BaseDTO):
     success: StrictBool
     message: str
-    data: Union[str, dict, list]
+    data: str | dict | list

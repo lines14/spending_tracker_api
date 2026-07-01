@@ -1,14 +1,17 @@
-import os
 import json
-import classutilities
-from typing import Type, Any
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-from sqlalchemy.orm import class_mapper, RelationshipProperty
+import os
+from typing import Any
 
-class DataUtils():
+import classutilities
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from sqlalchemy.orm import RelationshipProperty, class_mapper
+
+
+class DataUtils:
     @classutilities.classproperty
     def responses(cls):
-        with open('../templates/responses.json', 'r', encoding='utf-8') as data:
+        with open('../templates/responses.json', encoding='utf-8') as data:
             return type('', (object, ), json.loads(data.read()))
 
     @classmethod
@@ -16,9 +19,9 @@ class DataUtils():
         obj = cls()
         obj.__dict__.update(data)
         return obj
-    
+
     @classmethod
-    def search_foreign_field(cls, parent_class: Type, child_class: Type) -> str:
+    def search_foreign_field(cls, parent_class: type, child_class: type) -> str:
         for prop in class_mapper(child_class).iterate_properties:
             if isinstance(prop, RelationshipProperty) and prop.mapper.class_ == parent_class:
                 foreign_field = list(prop.local_columns)[0].name
@@ -30,9 +33,9 @@ class DataUtils():
     @classmethod
     def extract_parent_foreign_id_as_id(
         cls,
-        data: dict, 
-        parent_class: Type, 
-        child_class: Type
+        data: dict,
+        parent_class: type,
+        child_class: type
     ) -> dict[str, Any]:
         foreign_field = cls.search_foreign_field(parent_class, child_class)
 
@@ -43,15 +46,15 @@ class DataUtils():
 
         if value is not None:
             return {'id': value}
-        
+
         return {}
-    
+
     @classmethod
     def extract_child_foreign_id_as_id(
         cls,
         parent_data: dict[str, Any],
-        parent_class: Type,
-        child_class: Type
+        parent_class: type,
+        child_class: type
     ) -> dict[str, Any]:
         foreign_field = cls.search_foreign_field(parent_class, child_class)
 
@@ -64,12 +67,12 @@ class DataUtils():
             return {}
 
         return {foreign_field: parent_id}
-    
+
     @staticmethod
     def filter_search_fields(search_by: dict, model) -> dict:
         service_keys = {'relations', 'keys', 'with_soft_deleted', 'soft_delete'}
-        
+
         return {
-            key: value for key, value in search_by.items() 
+            key: value for key, value in search_by.items()
             if (key in model.model_fields or key in service_keys) and value is not None
         }

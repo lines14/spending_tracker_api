@@ -1,7 +1,9 @@
+from typing import TYPE_CHECKING, Optional
+
 from sqlmodel import Field, Relationship
-from typing import Optional, TYPE_CHECKING
+
 from models.base.base_model import BaseModel
-from models.base.optional_fields import WithTimestamps, WithSoftDelete
+from models.base.optional_fields import WithSoftDelete, WithTimestamps
 
 if TYPE_CHECKING:
     from .bank_account import BankAccount

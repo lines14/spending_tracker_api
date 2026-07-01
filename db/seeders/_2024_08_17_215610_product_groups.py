@@ -1,13 +1,15 @@
 import asyncio
-from models import ProductGroup
+
 from db.seeders.base.base_seeder import BaseSeeder
+from models import ProductGroup
+
 
 class ProductGroups(BaseSeeder):
     revision: str = '_2024_08_17_215610'
 
     def __init__(self):
         super().__init__(ProductGroup)
-        
+
         async def seed():
             data_list = [
                 ProductGroup(group='Продукты'),
@@ -18,5 +20,5 @@ class ProductGroups(BaseSeeder):
             ]
 
             await self.seed(data_list)
-            
+
         asyncio.run(seed())

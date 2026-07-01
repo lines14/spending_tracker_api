@@ -1,28 +1,30 @@
 import json
-from typing import Union
-from models import ErrorLog
+
 from fastapi import Response
-from dto.response_dto import ResponseDTO
+
 from dto.response_content_dto import ResponseContentDTO
+from dto.response_dto import ResponseDTO
+from models import ErrorLog
 from repositories.base.base_repository import BaseRepository
+
 
 class ResponseUtils:
     @staticmethod
     async def success(
-        msg: str = '', 
-        data: Union[str, dict, list] = '', 
-        status_code: int = 200, 
+        msg: str = '',
+        data: str | dict | list = '',
+        status_code: int = 200,
         media_type="application/json"
     ) -> Response:
         content = ResponseContentDTO(
-            success=True, 
-            message=msg, 
+            success=True,
+            message=msg,
             data=data
         )
 
         response = ResponseDTO(
-            content=json.dumps(content.model_dump()), 
-            media_type=media_type, 
+            content=json.dumps(content.model_dump()),
+            media_type=media_type,
             status_code=status_code
         )
 
@@ -31,20 +33,20 @@ class ResponseUtils:
     @staticmethod
     async def error(
         request,
-        msg: str = '', 
-        data: Union[str, dict, list] = '', 
-        status_code: int = 400, 
+        msg: str = '',
+        data: str | dict | list = '',
+        status_code: int = 400,
         media_type="application/json"
     ) -> Response:
         content = ResponseContentDTO(
-            success=False, 
-            message=msg, 
+            success=False,
+            message=msg,
             data=data
         )
 
         response = ResponseDTO(
-            content=json.dumps(content.model_dump()), 
-            media_type=media_type, 
+            content=json.dumps(content.model_dump()),
+            media_type=media_type,
             status_code=status_code
         )
 
@@ -61,7 +63,7 @@ class ResponseUtils:
                 method_type=request.method,
                 message=msg
             )
-            
+
             error_log_repository = BaseRepository(model=ErrorLog)
             await error_log_repository.create(error_log)
 

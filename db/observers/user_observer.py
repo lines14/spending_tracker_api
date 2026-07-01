@@ -1,7 +1,9 @@
 from sqlalchemy import select
-from models import User, BankAccount, Purchase
-from repositories.base.redis_client import RedisClient
+
 from db.observers.base.base_observer import BaseObserver
+from models import BankAccount, Purchase, User
+from repositories.base.redis_client import RedisClient
+
 
 class UserObserver(BaseObserver):
     model = User
@@ -29,7 +31,7 @@ class UserObserver(BaseObserver):
             for bank_account_id in bank_account_ids:
                 keys.append(redis_client.create_key('bank_account', bank_account_id))
                 keys.append(redis_client.create_key('bank_account_with_relations', bank_account_id))
-                
+
                 query = select(Purchase.id).where(Purchase.account_id == bank_account_id)
                 purchase_ids = connection.execute(query).scalars().all()
                 for purchase_id in purchase_ids:

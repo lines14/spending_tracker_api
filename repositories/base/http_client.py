@@ -1,5 +1,6 @@
 import httpx
 
+
 class HTTPClient:
     def __init__(self, base_URL, timeout=None, headers=None):
         self.__client = httpx.AsyncClient(

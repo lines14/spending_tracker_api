@@ -1,5 +1,7 @@
 from fastapi import Response
+
 from utils import DataUtils, ResponseUtils
+
 
 class GreetingsController:
     async def greetings() -> Response:

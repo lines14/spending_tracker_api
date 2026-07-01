@@ -1,5 +1,6 @@
 import os
 
+
 class Logger:
     @staticmethod
     def log(str: str) -> None:
@@ -7,10 +8,10 @@ class Logger:
         os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
         if os.path.exists(log_path):
-            with open(log_path, 'r', encoding='utf-8') as file:
+            with open(log_path, encoding='utf-8') as file:
                 old_content = file.read()
         else:
             old_content = ''
-            
+
         with open(log_path, 'w', encoding='utf-8') as file:
             file.write(str + old_content)

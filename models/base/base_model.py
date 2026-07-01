@@ -1,9 +1,11 @@
 import re
-from typing import Type, Union, Any
-from sqlmodel import SQLModel, Field
-from sqlalchemy.orm import declared_attr
+from typing import Any
+
 from fastapi import HTTPException, Request
-from pydantic import BaseModel, ValidationError, ConfigDict, create_model
+from pydantic import BaseModel, ConfigDict, ValidationError, create_model
+from sqlalchemy.orm import declared_attr
+from sqlmodel import Field, SQLModel
+
 
 class BaseModel(SQLModel):
     model_config = ConfigDict(
@@ -19,18 +21,18 @@ class BaseModel(SQLModel):
         return re.sub(r"(?<!^)(?=[A-Z])", "_", cls.__name__).lower() + "s"
 
     @classmethod
-    def validate(cls: Type[BaseModel], fields: list[str]):
+    def validate(cls: type[BaseModel], fields: list[str]):
         async def validate_fields(request: Request) -> BaseModel:
             errors = []
             validated_data = {}
-            
+
             data = await request.json()
 
             for field in fields:
                 if field in data:
                     try:
                         SingleFieldModel = create_model(
-                            'SingleFieldModel', 
+                            'SingleFieldModel',
                             **{field: (cls.__annotations__[field], ...)}
                         )
 
@@ -48,15 +50,15 @@ class BaseModel(SQLModel):
 
             if errors:
                 raise HTTPException(422, detail=errors)
-            
+
             return cls(**validated_data)
-        
+
         return validate_fields
-    
+
     @classmethod
-    def clean_soft_deleted_relations(cls, obj: Union[SQLModel, list[SQLModel]]):
+    def clean_soft_deleted_relations(cls, obj: SQLModel | list[SQLModel]):
         if isinstance(obj, list):
-            return [cls.clean_soft_deleted_relations(item) 
+            return [cls.clean_soft_deleted_relations(item)
                     for item in obj if item.deleted_at is None]
 
         if not isinstance(obj, SQLModel):
@@ -64,7 +66,7 @@ class BaseModel(SQLModel):
 
         for key, value in obj.__dict__.items():
             if isinstance(value, list):
-                cleaned = [val for val in value if isinstance(val, SQLModel) 
+                cleaned = [val for val in value if isinstance(val, SQLModel)
                            and getattr(val, "deleted_at", None) is None]
 
                 for item in cleaned:
@@ -78,13 +80,13 @@ class BaseModel(SQLModel):
                     cls.clean_soft_deleted_relations(value)
 
         return obj
-    
+
     @classmethod
-    def nested_models_to_dict(cls, obj: Union[SQLModel, list[SQLModel], dict, Any]) -> Any:
+    def nested_models_to_dict(cls, obj: SQLModel | list[SQLModel] | dict | Any) -> Any:
         if isinstance(obj, list):
             return [cls.nested_models_to_dict(item) for item in obj]
 
-        elif isinstance(obj, SQLModel):
+        if isinstance(obj, SQLModel):
             result = {}
 
             for key, value in obj.__dict__.items():
@@ -95,8 +97,7 @@ class BaseModel(SQLModel):
 
             return result
 
-        elif isinstance(obj, dict):
+        if isinstance(obj, dict):
             return {key: cls.nested_models_to_dict(value) for key, value in obj.items()}
 
-        else:
-            return obj
+        return obj
