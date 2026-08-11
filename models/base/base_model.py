@@ -17,7 +17,7 @@ class BaseModel(SQLModel):
     id: int = Field(primary_key=True, nullable=False)
 
     @declared_attr.directive
-    def __tablename__(cls) -> str:
+    def __tablename__(cls) -> str:  # noqa: N805
         return re.sub(r"(?<!^)(?=[A-Z])", "_", cls.__name__).lower() + "s"
 
     @classmethod
@@ -31,22 +31,16 @@ class BaseModel(SQLModel):
             for field in fields:
                 if field in data:
                     try:
-                        SingleFieldModel = create_model(
-                            'SingleFieldModel',
-                            **{field: (cls.__annotations__[field], ...)}
+                        single_field_model = create_model(
+                            "SingleFieldModel", **{field: (cls.__annotations__[field], ...)}
                         )
 
-                        validated_field = SingleFieldModel(**{field: data[field]})
+                        validated_field = single_field_model(**{field: data[field]})
                         validated_data[field] = validated_field.dict()[field]
                     except ValidationError as e:
                         errors.extend(e.errors())
                 else:
-                    errors.append({
-                        "type": "missing",
-                        "loc": ["body", field],
-                        "msg": "Field required",
-                        "input": None
-                    })
+                    errors.append({"type": "missing", "loc": ["body", field], "msg": "Field required", "input": None})
 
             if errors:
                 raise HTTPException(422, detail=errors)
@@ -58,16 +52,16 @@ class BaseModel(SQLModel):
     @classmethod
     def clean_soft_deleted_relations(cls, obj: SQLModel | list[SQLModel]):
         if isinstance(obj, list):
-            return [cls.clean_soft_deleted_relations(item)
-                    for item in obj if item.deleted_at is None]
+            return [cls.clean_soft_deleted_relations(item) for item in obj if item.deleted_at is None]
 
         if not isinstance(obj, SQLModel):
             return obj
 
         for key, value in obj.__dict__.items():
             if isinstance(value, list):
-                cleaned = [val for val in value if isinstance(val, SQLModel)
-                           and getattr(val, "deleted_at", None) is None]
+                cleaned = [
+                    val for val in value if isinstance(val, SQLModel) and getattr(val, "deleted_at", None) is None
+                ]
 
                 for item in cleaned:
                     cls.clean_soft_deleted_relations(item)

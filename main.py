@@ -9,41 +9,44 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from db.base.base_db import BaseDB
 from db.observers import init_observers
-from middlewares import *
-from routes import *
-from scheduler import *
+from middlewares import AuthMiddleware, LogErrorsMiddleware
+from routes import bank_account_router, purchase_router, router, user_router
+from scheduler import CurrencyRatesUpdaterSchedule
 
 load_dotenv()
 
+background_tasks = set()
+
+
 async def start_scheduler():
-    (aioschedule.every().hour.at(":10")
-     .do(CurrencyRatesUpdaterSchedule().update_currency_rates))
+    (aioschedule.every().hour.at(":10").do(CurrencyRatesUpdaterSchedule().update_currency_rates))
 
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
 
+
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     init_observers()
     await BaseDB().init_tables()
-    asyncio.create_task(start_scheduler())
+    task = asyncio.create_task(start_scheduler())
+    background_tasks.add(task)
+    task.add_done_callback(background_tasks.discard)
+
     yield
 
-app = FastAPI(
-    lifespan=lifespan,
-    title='Spending tracker API',
-    docs_url='/docs',
-    redoc_url='/redoc',
-    root_path='/api'
-)
+    await BaseDB.dispose_engine()
+
+
+app = FastAPI(lifespan=lifespan, title="Spending tracker API", docs_url="/docs", redoc_url="/redoc", root_path="/api")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[getenv('FRONT_URL')],
+    allow_origins=[getenv("FRONT_URL")],
     allow_credentials=True,
-    allow_methods=['*'],
-    allow_headers=['*']
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.add_middleware(AuthMiddleware)

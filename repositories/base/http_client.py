@@ -2,12 +2,8 @@ import httpx
 
 
 class HTTPClient:
-    def __init__(self, base_URL, timeout=None, headers=None):
-        self.__client = httpx.AsyncClient(
-            base_url=base_URL,
-            headers=headers,
-            timeout=timeout
-        )
+    def __init__(self, base_url, timeout=None, headers=None):
+        self.__client = httpx.AsyncClient(base_url=base_url, headers=headers, timeout=timeout)
 
     async def get(self, endpoint, params=None):
         return await self.__client.get(url=endpoint, params=params)

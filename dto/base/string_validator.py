@@ -9,7 +9,7 @@ class StringValidator:
         return self.value.isalnum()
 
     def has_spaces(self) -> bool:
-        return ' ' in self.value
+        return " " in self.value
 
     def is_alphanumeric_with_spaces(self):
         return all(el.isalnum() or el.isspace() for el in self.value)

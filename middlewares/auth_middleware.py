@@ -12,12 +12,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
 
     async def dispatch(self, request: Request, call_next) -> Response:
-        base = request.url.path[len(request.scope.get("root_path","")):]
+        base = request.url.path[len(request.scope.get("root_path", "")) :]
 
-        if any(base.startswith(path) for path in Config().PROTECTED_PATHS):
-            auth_header = request.headers.get('Authorization')
+        if any(base.startswith(path) for path in Config().protected_paths):
+            auth_header = request.headers.get("Authorization")
 
-            if not auth_header or not auth_header.startswith('Bearer '):
+            if not auth_header or not auth_header.startswith("Bearer "):
                 return await ResponseUtils.error(request, *DataUtils.responses.unauthorized_error)
 
             try:

@@ -5,8 +5,8 @@ from config import Config
 
 
 class RedisClient:
-    __sync_pool = sync_redis.ConnectionPool.from_url(Config().REDIS_URL)
-    __async_pool = async_redis.ConnectionPool.from_url(Config().REDIS_URL)
+    __sync_pool = sync_redis.ConnectionPool.from_url(Config().redis_url)
+    __async_pool = async_redis.ConnectionPool.from_url(Config().redis_url)
 
     def __init__(self):
         self.__sync_client = sync_redis.Redis(connection_pool=self.__sync_pool)
@@ -29,7 +29,7 @@ class RedisClient:
 
     async def get(self, name: str) -> str | None:
         result = await self.__async_client.get(name)
-        return result.decode('utf-8') if result else None
+        return result.decode("utf-8") if result else None
 
     async def delete(self, name: str):
         await self.__async_client.delete(name)
@@ -64,7 +64,7 @@ class RedisClient:
         async with self.__async_client.pipeline(transaction=True) as pipe:
             keys_to_delete = await self.__async_client.smembers(tag_key)
             if keys_to_delete:
-                decoded_keys = [k.decode('utf-8') for k in keys_to_delete]
+                decoded_keys = [k.decode("utf-8") for k in keys_to_delete]
                 pipe.delete(*decoded_keys)
 
             pipe.delete(tag_key)

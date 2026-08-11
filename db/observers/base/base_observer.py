@@ -1,4 +1,4 @@
-from sqlalchemy import event
+from sqlalchemy import event, inspect
 
 from repositories.base.redis_client import RedisClient
 
@@ -12,12 +12,12 @@ class BaseObserver:
             raise ValueError(f"Observer '{cls.__name__}' must define a 'model' attribute")
 
         possible_events = [
-            'before_insert',
-            'after_insert',
-            'before_update',
-            'after_update',
-            'before_delete',
-            'after_delete'
+            "before_insert",
+            "after_insert",
+            "before_update",
+            "after_update",
+            "before_delete",
+            "after_delete",
         ]
 
         for event_name in possible_events:
@@ -31,25 +31,34 @@ class BaseObserver:
 
     @classmethod
     def __clear_cache(cls, event_type: str, target, connection):
-        redis_client = RedisClient()
         keys = cls._get_redis_keys_for_cleanup(event_type, target, connection)
 
         if not keys:
             return
 
-        for key in keys:
-            redis_client.sync_delete(key)
+        session = inspect(target).session
 
-        print(f"INFO:     [Observer] Cache invalidated for '{cls.model.__name__}:{target.id}' and relations on {event_type.upper()} event")
+        if session:
+
+            @event.listens_for(session, "after_commit", once=True)
+            def _on_commit():
+                redis_client = RedisClient()
+
+                for key in keys:
+                    redis_client.sync_delete(key)
+
+                print(
+                    f"INFO:     [Observer] Cache invalidated for '{cls.model.__name__}:{target.id}' and relations on {event_type.upper()} event"
+                )
 
     @classmethod
-    def after_insert(cls, mapper, connection, target):
-        cls.__clear_cache('insert', target, connection)
+    def after_insert(cls, _mapper, connection, target):
+        cls.__clear_cache("insert", target, connection)
 
     @classmethod
-    def after_update(cls, mapper, connection, target):
-        cls.__clear_cache('update', target, connection)
+    def after_update(cls, _mapper, connection, target):
+        cls.__clear_cache("update", target, connection)
 
     @classmethod
-    def after_delete(cls, mapper, connection, target):
-        cls.__clear_cache('delete', target, connection)
+    def after_delete(cls, _mapper, connection, target):
+        cls.__clear_cache("delete", target, connection)

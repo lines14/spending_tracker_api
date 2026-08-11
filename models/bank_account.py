@@ -9,17 +9,18 @@ if TYPE_CHECKING:
     from .purchase import Purchase
     from .user import User
 
+
 class BankAccount(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     account: str = Field(nullable=False)
-    issuer_id: int = Field(nullable=False, foreign_key='bank_account_issuers.id')
-    currency_id: int = Field(index=True, nullable=False, foreign_key='currencies.id')
-    user_id: int = Field(index=True, nullable=False, foreign_key='users.id')
+    issuer_id: int = Field(nullable=False, foreign_key="bank_account_issuers.id")
+    currency_id: int = Field(index=True, nullable=False, foreign_key="currencies.id")
+    user_id: int = Field(index=True, nullable=False, foreign_key="users.id")
 
     user: Optional["User"] = Relationship(back_populates="bank_accounts")
 
     purchases: list["Purchase"] = Relationship(
-        back_populates="bank_account",
-        sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+        back_populates="bank_account", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
     )
+
 
 BankAccount.model_rebuild()

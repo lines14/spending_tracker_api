@@ -7,14 +7,9 @@ from dto import ResponseTemplateContextDTO, ResponseTemplateDTO
 
 
 class TemplateController:
-    async def get_template(
-        request: Request
-    ) -> Response:
-        data = ResponseTemplateContextDTO(
-            request=request,
-            pythonVersion=version,
-            fastapiVersion=__version__
-        )
+    @staticmethod
+    async def get_template(request: Request) -> Response:
+        data = ResponseTemplateContextDTO(request=request, python_version=version, fastapi_version=__version__)
 
         templates = Jinja2Templates(directory="../templates")
         template = templates.TemplateResponse("index.html", data.model_dump())

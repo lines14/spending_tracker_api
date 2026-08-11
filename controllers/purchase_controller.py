@@ -1,4 +1,4 @@
-from fastapi import Depends, Request, Response
+from fastapi import Depends, Response
 
 from dto import PurchaseCreateDTO
 from services import PurchaseService
@@ -6,31 +6,20 @@ from utils import DataUtils, ResponseUtils
 
 
 class PurchaseController:
-    async def create_purchase(
-        request: Request,
-        purchase: PurchaseCreateDTO,
-        service: PurchaseService = Depends()
-    ) -> Response:
-        await service.create_purchase(purchase)
+    @staticmethod
+    async def create_purchase(purchase: PurchaseCreateDTO, purchase_service: PurchaseService = Depends()) -> Response:
+        await purchase_service.create_purchase(purchase)
         return await ResponseUtils.success(DataUtils.responses.purchase_created_message)
 
-    async def get_purchase(
-        request: Request,
-        id: int,
-        service: PurchaseService = Depends()
-    ) -> Response:
-        purchase = await service.get_purchase(locals())
+    @staticmethod
+    async def get_purchase(id: int, purchase_service: PurchaseService = Depends()) -> Response:
+        purchase = await purchase_service.get_purchase(locals())
 
-        return await ResponseUtils.success(
-            DataUtils.responses.purchase_received_message,
-            purchase.model_dump()
-        )
+        return await ResponseUtils.success(DataUtils.responses.purchase_received_message, purchase.model_dump())
 
+    @staticmethod
     async def delete_purchase(
-        request: Request,
-        id: int,
-        soft_delete: bool | None = True,
-        service: PurchaseService = Depends()
+        id: int, soft_delete: bool | None = True, purchase_service: PurchaseService = Depends()
     ) -> Response:
-        await service.delete_purchase(locals(), soft_delete)
+        await purchase_service.delete_purchase(locals(), soft_delete)
         return await ResponseUtils.success(DataUtils.responses.purchase_deleted_message.format(id=id))

@@ -6,10 +6,7 @@ from utils import DataUtils, ResponseUtils
 
 
 class AuthController:
-    async def auth(
-        request: Request,
-        credentials: CredentialsDTO,
-        service: AuthService = Depends()
-    ) -> Response:
-        token = await service.auth(request.headers, credentials)
+    @staticmethod
+    async def auth(request: Request, credentials: CredentialsDTO, auth_service: AuthService = Depends()) -> Response:
+        token = await auth_service.auth(request.headers, credentials)
         return await ResponseUtils.success(DataUtils.responses.authorized_message, token)

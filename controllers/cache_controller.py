@@ -7,6 +7,6 @@ from utils import DataUtils, ResponseUtils
 
 class CacheController:
     @staticmethod
-    async def clear_cache(service: CacheService = Depends()) -> ResponseContentDTO:
-        await service.clear_cache()
+    async def clear_cache(cache_service: CacheService = Depends()) -> ResponseContentDTO:
+        await cache_service.clear_cache()
         return await ResponseUtils.success(DataUtils.responses.clear_cache_message)

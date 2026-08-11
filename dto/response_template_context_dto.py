@@ -5,5 +5,5 @@ from dto.base import BaseDTO
 
 class ResponseTemplateContextDTO(BaseDTO):
     request: Request
-    pythonVersion: str
-    fastapiVersion: str
+    python_version: str
+    fastapi_version: str

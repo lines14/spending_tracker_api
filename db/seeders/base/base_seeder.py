@@ -5,13 +5,17 @@ from repositories.base.base_repository import BaseRepository
 class BaseSeeder:
     def __init__(self, model):
         self.model = model
-        self.repository = BaseRepository(model)
 
     async def seed(self, data_list):
-        db = BaseDB()
-        await db.init_tables()
-        await self.repository.seed(data_list)
-        await db.dispose_engine()
+        async with BaseDB() as db:
+            await db.init_tables()
+            repository = BaseRepository(self.model, db.session)
+            await repository.seed(data_list)
+
+    async def get_related_records(self, related_model: type) -> list:
+        async with BaseDB() as db:
+            repository = BaseRepository(related_model, db.session)
+            return await repository.get_all()
 
     @classmethod
     def get_related(cls, instances, **conditions):

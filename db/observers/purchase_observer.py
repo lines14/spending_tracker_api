@@ -13,23 +13,23 @@ class PurchaseObserver(BaseObserver):
         keys = []
         redis_client = RedisClient()
 
-        keys.append(redis_client.create_key('purchases'))
-        keys.append(redis_client.create_key('bank_accounts'))
-        keys.append(redis_client.create_key('bank_accounts_with_relations'))
-        keys.append(redis_client.create_key('users'))
-        keys.append(redis_client.create_key('users_with_relations'))
-        keys.append(redis_client.create_key('bank_account', target.account_id))
-        keys.append(redis_client.create_key('bank_account_with_relations', target.account_id))
+        keys.append(redis_client.create_key("purchases"))
+        keys.append(redis_client.create_key("bank_accounts"))
+        keys.append(redis_client.create_key("bank_accounts_with_relations"))
+        keys.append(redis_client.create_key("users"))
+        keys.append(redis_client.create_key("users_with_relations"))
+        keys.append(redis_client.create_key("bank_account", target.account_id))
+        keys.append(redis_client.create_key("bank_account_with_relations", target.account_id))
 
         query = select(BankAccount.user_id).where(BankAccount.id == target.account_id)
         user_id = connection.execute(query).scalar()
 
-        keys.append(redis_client.create_key('user', user_id))
-        keys.append(redis_client.create_key('user_with_relations', user_id))
-        keys.append(redis_client.create_key('user_bank_accounts', user_id))
-        keys.append(redis_client.create_key('user_bank_accounts_with_relations', user_id))
+        keys.append(redis_client.create_key("user", user_id))
+        keys.append(redis_client.create_key("user_with_relations", user_id))
+        keys.append(redis_client.create_key("user_bank_accounts", user_id))
+        keys.append(redis_client.create_key("user_bank_accounts_with_relations", user_id))
 
-        if event_type in ('update', 'delete'):
-            keys.append(redis_client.create_key('purchase', target.id))
+        if event_type in ("update", "delete"):
+            keys.append(redis_client.create_key("purchase", target.id))
 
         return keys

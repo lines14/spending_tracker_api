@@ -1,7 +1,8 @@
+from collections.abc import AsyncGenerator
 from datetime import datetime
 
 from sqlalchemy import inspect, select
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import joinedload
 from sqlalchemy.sql import and_
 from sqlmodel import SQLModel
@@ -10,24 +11,36 @@ from config import Config
 
 
 class BaseDB:
-    engine = create_async_engine(Config().DB_URL_ASYNC)
+    engine = create_async_engine(Config().db_url_async, pool_pre_ping=True)
 
-    sessionmaker = async_sessionmaker(
-        bind=engine,
-        expire_on_commit=False,
-        autoflush=False
-    )
+    sessionmaker = async_sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
 
-    def __init__(self):
-        self.session = None
+    def __init__(self, session: AsyncSession | None = None):
+        self.session = session
 
     async def __aenter__(self):
-        self.session = self.sessionmaker()
+        if not self.session:
+            self.session = self.sessionmaker()
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         if self.session:
+            if exc_type is not None:
+                await self.session.rollback()
+            else:
+                await self.session.commit()
             await self.session.close()
+
+    @classmethod
+    async def get_session(cls) -> AsyncGenerator[AsyncSession, None]:
+        async with cls.sessionmaker() as session:
+            try:
+                yield session
+
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
 
     @classmethod
     async def dispose_engine(cls):
@@ -50,23 +63,17 @@ class BaseDB:
         return loader
 
     def get_not_empty_properties(self, instance):
-        instance_properties = {
-            attr.key: getattr(instance, attr.key)
-            for attr in inspect(instance).mapper.column_attrs
-        }
+        instance_properties = {attr.key: getattr(instance, attr.key) for attr in inspect(instance).mapper.column_attrs}
 
         return {key: value for key, value in instance_properties.items() if value is not None}
 
     def get_filter_expressions(self, model: type[SQLModel], target: dict | SQLModel):
         filter_expressions = []
 
-        if isinstance(target, dict):
-            instance_properties = target
-        else:
-            instance_properties = self.get_not_empty_properties(target)
+        instance_properties = target if isinstance(target, dict) else self.get_not_empty_properties(target)
 
-        if 'id' in instance_properties and instance_properties['id'] is not None:
-            value = instance_properties['id']
+        if "id" in instance_properties and instance_properties["id"] is not None:
+            value = instance_properties["id"]
             if isinstance(value, (list, tuple, set)):
                 return [model.id.in_(value)]
             return [model.id == value]
@@ -81,16 +88,12 @@ class BaseDB:
         return filter_expressions
 
     def build_select_query(
-        self,
-        model: type[SQLModel],
-        target: dict | SQLModel,
-        with_soft_deleted: bool,
-        load_all: bool = False
+        self, model: type[SQLModel], target: dict | SQLModel, with_soft_deleted: bool, load_all: bool = False
     ):
         filter_expressions = self.get_filter_expressions(model, target)
 
-        if not with_soft_deleted and hasattr(model, 'deleted_at'):
-            filter_expressions.append(model.deleted_at == None)
+        if not with_soft_deleted and hasattr(model, "deleted_at"):
+            filter_expressions.append(model.deleted_at.is_(None))
 
         query = select(model).where(and_(*filter_expressions))
 
@@ -101,11 +104,7 @@ class BaseDB:
         return query
 
     def build_select_query_with_joinedload(
-        self,
-        model: type[SQLModel],
-        target: dict | SQLModel,
-        keys: list[str],
-        with_soft_deleted: bool = False
+        self, model: type[SQLModel], target: dict | SQLModel, keys: list[str], with_soft_deleted: bool = False
     ):
         query = self.build_select_query(model, target, with_soft_deleted)
         options = [self.build_nested_joinedload(model, key) for key in keys]
@@ -121,11 +120,11 @@ class BaseDB:
 
                 if isinstance(related_value, list):
                     for child in related_value:
-                        if hasattr(child, 'deleted_at') and child.deleted_at is None:
+                        if hasattr(child, "deleted_at") and child.deleted_at is None:
                             child.deleted_at = current_time
                             await self.cascade_soft_delete(child, current_time)
 
                 else:
-                    if hasattr(related_value, 'deleted_at') and related_value.deleted_at is None:
+                    if hasattr(related_value, "deleted_at") and related_value.deleted_at is None:
                         related_value.deleted_at = current_time
                         await self.cascade_soft_delete(related_value, current_time)

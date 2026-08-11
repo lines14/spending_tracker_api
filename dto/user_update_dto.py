@@ -17,14 +17,14 @@ class UserUpdateDTO(BaseDTO):
         default=None,
         description=DataUtils.responses.login_validation_message,
         min_length=login_min_length,
-        max_length=max_length
+        max_length=max_length,
     )
 
     password: str | None = Field(
         default=None,
         description=DataUtils.responses.password_validation_message,
         min_length=password_min_length,
-        max_length=max_length
+        max_length=max_length,
     )
 
     hashed_password: str | None = None
@@ -34,14 +34,20 @@ class UserUpdateDTO(BaseDTO):
     def validate_fields(cls, values):
         if values.login is not None:
             login = StringValidator(values.login)
-            if (not login.is_length_between(cls.login_min_length, cls.max_length)
-                or not login.is_alphanumeric() or login.has_spaces()):
+            if (
+                not login.is_length_between(cls.login_min_length, cls.max_length)
+                or not login.is_alphanumeric()
+                or login.has_spaces()
+            ):
                 raise ValueError(DataUtils.responses.login_validation_message)
 
         if values.password is not None:
             password = StringValidator(values.password)
-            if (not password.is_length_between(cls.password_min_length, cls.max_length)
-                or not password.is_alphanumeric() or password.has_spaces()):
+            if (
+                not password.is_length_between(cls.password_min_length, cls.max_length)
+                or not password.is_alphanumeric()
+                or password.has_spaces()
+            ):
                 raise ValueError(DataUtils.responses.password_validation_message)
 
         return values

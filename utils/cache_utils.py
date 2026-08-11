@@ -17,7 +17,11 @@ class CacheUtils:
                         if isinstance(field_value, BaseModel):
                             tags.append(field_name)
                             walk(field_value)
-                        elif isinstance(field_value, list) and len(field_value) > 0 and isinstance(field_value[0], BaseModel):
+                        elif (
+                            isinstance(field_value, list)
+                            and len(field_value) > 0
+                            and isinstance(field_value[0], BaseModel)
+                        ):
                             tags.append(field_name)
                             for item in field_value:
                                 walk(item)
@@ -35,13 +39,7 @@ class CacheUtils:
             f"*{redis_client.create_key('user_with_relations')}:*",
         ]
 
-        keys = [
-            "users",
-            "users_with_relations",
-            "bank_accounts",
-            "bank_accounts_with_relations",
-            "purchases"
-        ]
+        keys = ["users", "users_with_relations", "bank_accounts", "bank_accounts_with_relations", "purchases"]
 
         for prefix in prefixes:
             await redis_client.delete_by_prefix(prefix)

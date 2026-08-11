@@ -8,7 +8,7 @@ class RedisSetexRequestDTO(BaseDTO):
     time: int
     value: str
 
-    @field_validator('time', mode='before')
+    @field_validator("time", mode="before")
     @classmethod
     def cast_str_env_to_int(cls, value):
         if isinstance(value, str):

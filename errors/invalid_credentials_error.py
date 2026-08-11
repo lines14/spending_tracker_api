@@ -1,7 +1,7 @@
-from exceptions.base.base_custom_exception import BaseCustomException
+from errors.base.base_custom_error import BaseCustomError
 from utils import DataUtils
 
 
-class InvalidCredentialsException(BaseCustomException):
+class InvalidCredentialsError(BaseCustomError):
     def __init__(self):
         super().__init__(DataUtils.responses.invalid_credentials_error)

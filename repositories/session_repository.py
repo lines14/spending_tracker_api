@@ -9,8 +9,8 @@ from utils import CryptographyUtils
 
 
 class SessionRepository(BaseRepository):
-    def __init__(self):
-        super().__init__(model=Session)
+    def __init__(self, **kwargs):
+        super().__init__(Session, **kwargs)
 
     async def create_session(self, user_id: int, token: str, headers: dict) -> None:
         redis_client = RedisClient()
@@ -18,28 +18,21 @@ class SessionRepository(BaseRepository):
         hashed_token = CryptographyUtils.hash_string(token)
 
         session = self.model(
-            user_id=user_id,
-            token=hashed_token,
-            host=headers.get('host'),
-            user_agent=headers.get('user-agent')
+            user_id=user_id, token=hashed_token, host=headers.get("host"), user_agent=headers.get("user-agent")
         )
 
         await self.create(session)
 
-        key = redis_client.create_key('session', session.user_id)
+        key = redis_client.create_key("session", session.user_id)
         stringified_session = json.dumps(session.model_dump(), default=str)
 
-        data = RedisSetexRequestDTO(
-            name=key,
-            time=getenv('TOKEN_TTL'),
-            value=stringified_session
-        )
+        data = RedisSetexRequestDTO(name=key, time=getenv("TOKEN_TTL"), value=stringified_session)
 
         await redis_client.setex(**data.model_dump())
 
     async def get_session(self, user_id: int) -> SessionDTO | None:
         redis_client = RedisClient()
-        key = redis_client.create_key('session', user_id)
+        key = redis_client.create_key("session", user_id)
         stringified_session = await redis_client.get(key)
 
         if not stringified_session:
@@ -49,5 +42,5 @@ class SessionRepository(BaseRepository):
 
     async def delete_session(self, user_id: int) -> None:
         redis_client = RedisClient()
-        key = redis_client.create_key('session', user_id)
+        key = redis_client.create_key("session", user_id)
         await redis_client.delete(key)

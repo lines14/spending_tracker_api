@@ -9,10 +9,10 @@ from dotenv import load_dotenv
 from db.seeders.base.base_seeder import BaseSeeder
 from dto import CurrencyRateResponseDTO
 from models import Currency, CurrencyRate
-from repositories.base.base_repository import BaseRepository
 from repositories.currencies_repository import CurrenciesRepository
 
 load_dotenv()
+
 
 class CurrencyRatesUpdaterSchedule(BaseSeeder):
     def __init__(self):
@@ -23,46 +23,34 @@ class CurrencyRatesUpdaterSchedule(BaseSeeder):
         response = await CurrenciesRepository().get_rates()
         root = ET.fromstring(response.text)
 
-        for item in root.findall('item'):
+        for item in root.findall("item"):
             currency_rate = CurrencyRateResponseDTO(
-                title=item.find('title').text,
-                rate=float(item.find('description').text)
+                title=item.find("title").text, rate=float(item.find("description").text)
             )
 
             currency_rates.append(currency_rate)
 
-        currency_repository = BaseRepository(Currency)
-        currencies = await currency_repository.get_all()
-        currency_titles = list(map(lambda currency: currency.currency, currencies))
+        currencies = await self.get_related_records(Currency)
+        currency_titles = [currency.currency for currency in currencies]
 
-        currency_rates = list(filter(
-            lambda currency_rate: currency_rate.title in currency_titles,
-            currency_rates
-        ))
+        currency_rates = list(filter(lambda currency_rate: currency_rate.title in currency_titles, currency_rates))
 
-        currency_rates = sorted(
-            currency_rates,
-            key=lambda currency_rate: currency_titles.index(currency_rate.title)
-        )
+        currency_rates = sorted(currency_rates, key=lambda currency_rate: currency_titles.index(currency_rate.title))
 
         currency_rates_models = []
 
         for currency_rate in currency_rates:
-            currency_rates_models.append(CurrencyRate(
-                currency_id=self.get_related(currencies, currency=currency_rate.title).id,
-                rate=currency_rate.rate
-            ))
-
-
+            currency_rates_models.append(
+                CurrencyRate(
+                    currency_id=self.get_related(currencies, currency=currency_rate.title).id, rate=currency_rate.rate
+                )
+            )
 
         data_list = [
-            CurrencyRate(
-                currency_id=self.get_related(currencies, currency='KZT').id,
-                rate=1
-            ),
-            *currency_rates_models
+            CurrencyRate(currency_id=self.get_related(currencies, currency="KZT").id, rate=1),
+            *currency_rates_models,
         ]
 
         await self.seed(data_list)
 
-        print('INFO:     [Scheduler] Successfully updated currency rates')
+        print("INFO:     [Scheduler] Successfully updated currency rates")
