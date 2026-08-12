@@ -33,9 +33,7 @@ RUN echo "alias seed='python -m db.config.seed'" >> ~/.bashrc
 RUN echo "alias migration='python -m db.config.create_migration'" >> ~/.bashrc
 RUN echo "alias seeder='python -m db.config.create_seeder'" >> ~/.bashrc
 
-RUN echo 'alias currencies:update="python -c \"import asyncio; \
-from scheduler.currency_rates_updater_schedule import CurrencyRatesUpdaterSchedule; \
-asyncio.run(CurrencyRatesUpdaterSchedule().update_currency_rates())\""' >> ~/.bashrc
+RUN echo 'alias currencies:update="python -c \"import cli; cli.run()\" currency_rates_update"' >> ~/.bashrc
 
 RUN /bin/sh -c "source ../home/myuser/.bashrc"
 

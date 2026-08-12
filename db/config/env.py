@@ -26,7 +26,9 @@ config.set_main_option("sqlalchemy.url", Config().db_url_sync)
 # This line sets up loggers basically.
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    base_dir = os.path.dirname(os.path.dirname(current_dir))
+    ini_path = os.path.join(base_dir, "alembic.ini")
+    fileConfig(ini_path)
 
 # add your model's MetaData object here
 # for 'autogenerate' support

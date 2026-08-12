@@ -11,7 +11,7 @@ from db.base.base_db import BaseDB
 from db.observers import init_observers
 from middlewares import AuthMiddleware, LogErrorsMiddleware
 from routes import bank_account_router, purchase_router, router, user_router
-from scheduler import CurrencyRatesUpdaterSchedule
+from cli import CurrencyRates
 
 load_dotenv()
 
@@ -19,7 +19,7 @@ background_tasks = set()
 
 
 async def start_scheduler():
-    (aioschedule.every().hour.at(":10").do(CurrencyRatesUpdaterSchedule().update_currency_rates))
+    (aioschedule.every().hour.at(":10").do(CurrencyRates().update))
 
     while True:
         await aioschedule.run_pending()

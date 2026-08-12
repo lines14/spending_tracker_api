@@ -14,11 +14,11 @@ from repositories.currencies_repository import CurrenciesRepository
 load_dotenv()
 
 
-class CurrencyRatesUpdaterSchedule(BaseSeeder):
+class CurrencyRates(BaseSeeder):
     def __init__(self):
         super().__init__(CurrencyRate)
 
-    async def update_currency_rates(self) -> None:
+    async def update(self) -> None:
         currency_rates = []
         response = await CurrenciesRepository().get_rates()
         root = ET.fromstring(response.text)
@@ -53,4 +53,4 @@ class CurrencyRatesUpdaterSchedule(BaseSeeder):
 
         await self.seed(data_list)
 
-        print("INFO:     [Scheduler] Successfully updated currency rates")
+        print("INFO:     [CLI] Successfully updated currency rates")

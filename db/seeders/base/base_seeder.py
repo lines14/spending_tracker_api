@@ -6,6 +6,12 @@ class BaseSeeder:
     def __init__(self, model):
         self.model = model
 
+    def __await__(self):
+        return self.run().__await__()
+
+    async def run(self):
+        raise NotImplementedError
+    
     async def seed(self, data_list):
         async with BaseDB() as db:
             await db.init_tables()
