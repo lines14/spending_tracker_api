@@ -15,12 +15,12 @@ class BaseSeeder:
     async def seed(self, data_list):
         async with BaseDB() as db:
             await db.init_tables()
-            repository = BaseRepository(self.model, db.session)
+            repository = BaseRepository(db.session, self.model)
             await repository.seed(data_list)
 
     async def get_related_records(self, related_model: type) -> list:
         async with BaseDB() as db:
-            repository = BaseRepository(related_model, db.session)
+            repository = BaseRepository(db.session, related_model)
             return await repository.get_all()
 
     @classmethod

@@ -62,7 +62,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
             )
 
             async with BaseDB() as db:
-                await BaseRepository(ErrorLog, db.session).create(error_log)
+                await BaseRepository(db.session, ErrorLog).create(error_log)
 
             try:
                 error_response = json.loads(str(e))

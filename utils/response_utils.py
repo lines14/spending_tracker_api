@@ -39,6 +39,6 @@ class ResponseUtils:
             )
 
             async with BaseDB() as db:
-                await BaseRepository(ErrorLog, db.session).create(error_log)
+                await BaseRepository(db.session, ErrorLog).create(error_log)
 
         return Response(**response.model_dump())

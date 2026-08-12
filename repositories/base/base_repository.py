@@ -12,12 +12,14 @@ from db.base.base_db import BaseDB
 
 
 class BaseRepository:
-    def __init__(self, session: AsyncSession = Depends(BaseDB.get_session)):
-        if not getattr(self, "model", None):
-            raise ValueError(DataUtils.responses.model_not_defined_error_message.format(class_name=self.__class__.__name__))
+    def __init__(self, session: AsyncSession = Depends(BaseDB.get_session), model: type[SQLModel] | None = None):
+        if model is None:
+            model = getattr(self, "model", None)
+            if not model:
+                raise ValueError(DataUtils.responses.model_not_defined_error_message.format(class_name=self.__class__.__name__))
 
         self.session = session
-        self.model = getattr(self, "model")
+        self.model = model
         self.db = BaseDB(session)
 
     async def get_all(self, target: dict | SQLModel | None = None, with_soft_deleted: bool = False) -> list[Any]:
