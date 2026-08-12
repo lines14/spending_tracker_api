@@ -20,7 +20,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
         body_bytes = await request.body()
 
         async def receive():
-            receive = ReceiveDTO(type="http.request", body=json.loads(body_bytes), more_body=False)
+            receive = ReceiveDTO(type="http.request", body=body_bytes, more_body=False)
 
             return receive.model_dump()
 
@@ -29,7 +29,7 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
         try:
             return await call_next(request)
         except BaseCustomError as bce:
-            return await ResponseUtils.error(request=None, msg=bce.message, data=bce.data, status_code=bce.status_code)
+            return await ResponseUtils.error(request, msg=bce.message, data=bce.data, status_code=bce.status_code)
         except Exception as e:
             if isinstance(e, (AttributeError, KeyError)):
                 e = ValueError(DataUtils.responses.invalid_relationship_path_error_message.format(key=e))
