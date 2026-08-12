@@ -5,6 +5,7 @@ from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, ValidationError, create_model
 from sqlalchemy.orm import declared_attr
 from sqlmodel import Field, SQLModel
+from sqlalchemy import inspect
 
 
 class BaseModel(SQLModel):
@@ -57,7 +58,7 @@ class BaseModel(SQLModel):
                 if getattr(item, "deleted_at", None) is None:
                     item_dict = cls.nested_models_to_dict(item)
                     cleaned_dict = cls._clean_soft_deleted_records(item_dict)
-                    result.append(cls(**cleaned_dict))
+                    result.append(cls._build_model(cls, cleaned_dict))
 
             return result
 
@@ -70,7 +71,7 @@ class BaseModel(SQLModel):
         obj_dict = cls.nested_models_to_dict(obj)
         cleaned_dict = cls._clean_soft_deleted_records(obj_dict)
 
-        return cls(**cleaned_dict)
+        return cls._build_model(cls, cleaned_dict)
 
     @classmethod
     def _clean_soft_deleted_records(cls, node):
@@ -99,22 +100,47 @@ class BaseModel(SQLModel):
         return node
 
     @classmethod
-    def nested_models_to_dict(cls, obj: SQLModel | list[SQLModel] | dict | Any) -> Any:
+    def _build_model(cls, model_cls, data):
+        relationships = {relationship.key: relationship for relationship in inspect(model_cls).relationships}
+        kwargs = {}
+        for key, value in data.items():
+            if key in relationships and value is not None:
+                relationship = relationships[key]
+                child_cls = relationship.mapper.class_
+                if relationship.uselist:
+                    kwargs[key] = [cls._build_model(child_cls, it) if isinstance(it, dict) else it for it in value]
+                else:
+                    kwargs[key] = cls._build_model(child_cls, value) if isinstance(value, dict) else value
+            else:
+                kwargs[key] = value
+
+        return model_cls(**kwargs)
+
+    @classmethod
+    def nested_models_to_dict(cls, obj: SQLModel | list[SQLModel] | dict | Any, visited = None) -> Any:
+        if visited is None:
+            visited = set()
+
         if isinstance(obj, list):
-            return [cls.nested_models_to_dict(item) for item in obj]
+            return [cls.nested_models_to_dict(item, visited) for item in obj]
 
         if isinstance(obj, SQLModel):
-            result = {}
+            object_id = id(obj)
+            if object_id in visited:
+                return {"id": getattr(obj, "id", None)}
+            
+            visited.add(object_id)
 
+            result = {}
             for key, value in obj.__dict__.items():
                 if key.startswith("_"):
                     continue
 
-                result[key] = cls.nested_models_to_dict(value)
+                result[key] = cls.nested_models_to_dict(value, visited)
 
             return result
 
         if isinstance(obj, dict):
-            return {key: cls.nested_models_to_dict(value) for key, value in obj.items()}
+            return {key: cls.nested_models_to_dict(value, visited) for key, value in obj.items()}
 
         return obj
