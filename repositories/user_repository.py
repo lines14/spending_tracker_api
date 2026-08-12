@@ -9,8 +9,7 @@ from utils import CacheUtils, CryptographyUtils, DataUtils
 
 
 class UserRepository(BaseRepository):
-    def __init__(self, **kwargs):
-        super().__init__(User, **kwargs)
+    # model = User
 
     async def create_user(self, credentials: CredentialsDTO) -> UserDTO:
         user = self.model(login=credentials.login, hashed_password=CryptographyUtils.hash_string(credentials.password))

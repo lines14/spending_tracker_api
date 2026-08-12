@@ -9,8 +9,7 @@ from utils import CryptographyUtils
 
 
 class SessionRepository(BaseRepository):
-    def __init__(self, **kwargs):
-        super().__init__(Session, **kwargs)
+    model = Session
 
     async def create_session(self, user_id: int, token: str, headers: dict) -> None:
         redis_client = RedisClient()

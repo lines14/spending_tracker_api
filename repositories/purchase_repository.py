@@ -2,15 +2,14 @@ import json
 from os import getenv
 
 from dto import PurchaseDTO, RedisSetexRequestDTO
-from models.purchase import Purchase
+from models import Purchase
 from repositories.base.base_repository import BaseRepository
 from repositories.base.redis_client import RedisClient
 from utils import DataUtils
 
 
 class PurchaseRepository(BaseRepository):
-    def __init__(self, **kwargs):
-        super().__init__(Purchase, **kwargs)
+    model = Purchase
 
     async def create_purchase(self, purchase_dto: PurchaseDTO) -> None:
         purchase = self.model(**purchase_dto.model_dump())

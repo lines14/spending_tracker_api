@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 from typing import Any
+from utils import DataUtils
 
 from fastapi import Depends
 from sqlalchemy import delete, desc, inspect, select, update
@@ -11,13 +12,12 @@ from db.base.base_db import BaseDB
 
 
 class BaseRepository:
-    def __init__(
-        self,
-        model: type[SQLModel],
-        session: AsyncSession = Depends(BaseDB.get_session),
-    ):
-        self.model = model
+    def __init__(self, session: AsyncSession = Depends(BaseDB.get_session)):
+        if not getattr(self, "model", None):
+            raise ValueError(DataUtils.responses.model_not_defined_error_message.format(class_name=self.__class__.__name__))
+
         self.session = session
+        self.model = getattr(self, "model")
         self.db = BaseDB(session)
 
     async def get_all(self, target: dict | SQLModel | None = None, with_soft_deleted: bool = False) -> list[Any]:

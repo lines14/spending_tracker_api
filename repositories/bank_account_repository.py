@@ -9,8 +9,7 @@ from utils import CacheUtils, DataUtils
 
 
 class BankAccountRepository(BaseRepository):
-    def __init__(self, **kwargs):
-        super().__init__(BankAccount, **kwargs)
+    model = BankAccount
 
     async def create_bank_account(self, bank_account_dto: BankAccountDTO) -> None:
         bank_account = self.model(**bank_account_dto.model_dump())

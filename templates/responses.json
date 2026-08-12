@@ -27,6 +27,7 @@
     "bank_account_received_message": "Bank account was successfully received",
     "bank_accounts_received_message": "Bank accounts was successfully received",
     "invalid_relationship_path_error_message": "Invalid relationship path {key}",
+    "model_not_defined_error_message": "{class_name} must define 'model' attribute",
 
     "login_validation_message": "login must be without spaces and can contain only letters and numbers",
     "password_validation_message": "password must be without spaces and can contain only letters and numbers",

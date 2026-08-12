@@ -1,4 +1,5 @@
 from sqlalchemy import event, inspect
+from utils import DataUtils
 
 from repositories.base.redis_client import RedisClient
 
@@ -9,7 +10,7 @@ class BaseObserver:
     @classmethod
     def register(cls):
         if cls.model is None:
-            raise ValueError(f"Observer '{cls.__name__}' must define a 'model' attribute")
+            raise ValueError(DataUtils.responses.model_not_defined_error_message.format(class_name=cls.__name__))
 
         possible_events = [
             "before_insert",
