@@ -14,7 +14,7 @@ class User(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     hashed_password: str = Field(nullable=False)
 
     bank_accounts: list["BankAccount"] = Relationship(
-        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"}
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan", "order_by": "BankAccount.id"}
     )
 
 
