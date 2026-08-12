@@ -24,7 +24,7 @@ class BaseDB:
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.session:
+        if self.session and self.session.is_active:
             if exc_type is not None:
                 await self.session.rollback()
             else:
@@ -37,9 +37,11 @@ class BaseDB:
             try:
                 yield session
 
-                await session.commit()
+                if session.is_active:
+                    await session.commit()
             except Exception:
-                await session.rollback()
+                if session.is_active:
+                    await session.rollback()
                 raise
 
     @classmethod

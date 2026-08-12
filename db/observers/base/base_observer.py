@@ -42,7 +42,7 @@ class BaseObserver:
         if session:
 
             @event.listens_for(session, "after_commit", once=True)
-            def _on_commit():
+            def _on_commit(_session):
                 redis_client = RedisClient()
 
                 for key in keys:

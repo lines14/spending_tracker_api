@@ -9,7 +9,6 @@ from db.base.base_db import BaseDB
 from dto import ErrorInfoDTO, ReceiveDTO, StackElementDTO
 from errors.base.base_custom_error import BaseCustomError
 from models import ErrorLog
-from repositories.base.base_repository import BaseRepository
 from utils import DataUtils, Logger, ResponseUtils
 
 
@@ -61,8 +60,8 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
                 message=str(exc_value),
             )
 
-            async with BaseDB() as db:
-                await BaseRepository(db.session, ErrorLog).create(error_log)
+            async with BaseDB.engine.begin() as conn:
+                await conn.run_sync(lambda sync_conn: sync_conn.execute(ErrorLog.__table__.insert().values(**error_log.model_dump())))
 
             try:
                 error_response = json.loads(str(e))
