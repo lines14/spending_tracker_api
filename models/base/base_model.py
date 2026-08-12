@@ -52,28 +52,51 @@ class BaseModel(SQLModel):
     @classmethod
     def clean_soft_deleted_relations(cls, obj: SQLModel | list[SQLModel]):
         if isinstance(obj, list):
-            return [cls.clean_soft_deleted_relations(item) for item in obj if item.deleted_at is None]
+            result = []
+            for item in obj:
+                if getattr(item, "deleted_at", None) is None:
+                    item_dict = cls.nested_models_to_dict(item)
+                    cleaned_dict = cls._clean_soft_deleted_records(item_dict)
+                    result.append(cls(**cleaned_dict))
+
+            return result
 
         if not isinstance(obj, SQLModel):
             return obj
 
-        for key, value in obj.__dict__.items():
-            if isinstance(value, list):
-                cleaned = [
-                    val for val in value if isinstance(val, SQLModel) and getattr(val, "deleted_at", None) is None
-                ]
+        if getattr(obj, "deleted_at", None) is not None:
+            return None
 
-                for item in cleaned:
-                    cls.clean_soft_deleted_relations(item)
+        obj_dict = cls.nested_models_to_dict(obj)
+        cleaned_dict = cls._clean_soft_deleted_records(obj_dict)
 
-                setattr(obj, key, cleaned)
-            elif isinstance(value, SQLModel):
-                if getattr(value, "deleted_at", None) is not None:
-                    setattr(obj, key, None)
+        return cls(**cleaned_dict)
+
+    @classmethod
+    def _clean_soft_deleted_records(cls, node):
+        if isinstance(node, dict):
+            out = {}
+            for key, value in node.items():
+                if isinstance(value, dict):
+                    if value.get("deleted_at") is None:
+                        out[key] = cls._clean_soft_deleted_records(value)
+                elif isinstance(value, list):
+                    processed_list = []
+                    for item in value:
+                        if isinstance(item, dict):
+                            if item.get("deleted_at") is None:
+                                processed_list.append(cls._clean_soft_deleted_records(item))
+                        else:
+                            processed_list.append(item)
+                    out[key] = processed_list
                 else:
-                    cls.clean_soft_deleted_relations(value)
+                    out[key] = value
+            return out
 
-        return obj
+        if isinstance(node, list):
+            return [cls._clean_soft_deleted_records(index) for index in node]
+
+        return node
 
     @classmethod
     def nested_models_to_dict(cls, obj: SQLModel | list[SQLModel] | dict | Any) -> Any:
