@@ -3,7 +3,7 @@ from typing import Any
 from utils import DataUtils
 
 from fastapi import Depends
-from sqlalchemy import delete, desc, inspect, select, update
+from sqlalchemy import delete, asc, desc, inspect, select, update
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import SQLModel
@@ -24,7 +24,7 @@ class BaseRepository:
 
     async def get_all(self, target: dict | SQLModel | None = None, with_soft_deleted: bool = False) -> list[Any]:
         query = self.db.build_select_query(self.model, target or {}, with_soft_deleted)
-        result = await self.session.execute(query.order_by(desc(self.model.id)))
+        result = await self.session.execute(query.order_by(asc(self.model.id)))
         return result.scalars().all()
 
     async def get_first(self, target: dict | SQLModel, with_soft_deleted: bool) -> Any | None:
@@ -41,7 +41,7 @@ class BaseRepository:
         self, keys: list[str] | None = None, with_soft_deleted: bool = False, target: dict | SQLModel | None = None
     ) -> list[Any]:
         query = self.db.build_select_query_with_joinedload(self.model, target or {}, keys, with_soft_deleted)
-        result = await self.session.execute(query.order_by(desc(self.model.id)))
+        result = await self.session.execute(query.order_by(asc(self.model.id)))
         res = result.unique().scalars().all()
 
         if not with_soft_deleted:
@@ -92,7 +92,7 @@ class BaseRepository:
 
     async def update_all(self, target: dict, fields_to_update: dict, with_soft_deleted: bool = False) -> list[Any]:
         query = self.db.build_select_query(self.model, target, with_soft_deleted)
-        result = await self.session.execute(query.order_by(desc(self.model.id)))
+        result = await self.session.execute(query.order_by(asc(self.model.id)))
         records = result.scalars().all()
 
         for record in records:
