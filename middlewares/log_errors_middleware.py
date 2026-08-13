@@ -61,7 +61,9 @@ class LogErrorsMiddleware(BaseHTTPMiddleware):
             )
 
             async with BaseDB.engine.begin() as conn:
-                await conn.run_sync(lambda sync_conn: sync_conn.execute(ErrorLog.__table__.insert().values(**error_log.model_dump())))
+                await conn.run_sync(
+                    lambda sync_conn: sync_conn.execute(ErrorLog.__table__.insert().values(**error_log.model_dump()))
+                )
 
             try:
                 error_response = json.loads(str(e))

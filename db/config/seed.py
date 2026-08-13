@@ -20,9 +20,7 @@ async def main():
     try:
         if seeder_name == "all":
             seeders_list = [
-                cls
-                for name, cls in inspect.getmembers(seeders, inspect.isclass)
-                if hasattr(cls, "revision")
+                cls for name, cls in inspect.getmembers(seeders, inspect.isclass) if hasattr(cls, "revision")
             ]
 
             sorted_seeders = sorted(seeders_list, key=lambda cls: cls.revision)

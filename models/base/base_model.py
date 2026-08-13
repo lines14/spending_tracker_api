@@ -117,7 +117,7 @@ class BaseModel(SQLModel):
         return model_cls(**kwargs)
 
     @classmethod
-    def nested_models_to_dict(cls, obj: SQLModel | list[SQLModel] | dict | Any, visited = None) -> Any:
+    def nested_models_to_dict(cls, obj: SQLModel | list[SQLModel] | dict | Any, visited=None) -> Any:
         if visited is None:
             visited = set()
 

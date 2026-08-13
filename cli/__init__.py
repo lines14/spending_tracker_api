@@ -13,6 +13,7 @@ async def currency_rates_update():
     finally:
         await BaseDB.dispose_engine()
 
+
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("command")

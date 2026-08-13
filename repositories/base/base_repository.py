@@ -16,7 +16,9 @@ class BaseRepository:
         if model is None:
             model = getattr(self, "model", None)
             if not model:
-                raise ValueError(DataUtils.responses.model_not_defined_error_message.format(class_name=self.__class__.__name__))
+                raise ValueError(
+                    DataUtils.responses.model_not_defined_error_message.format(class_name=self.__class__.__name__)
+                )
 
         self.session = session
         self.model = model
@@ -110,12 +112,12 @@ class BaseRepository:
             insert(self.model).values(**instance_properties).on_duplicate_key_update(**instance_properties)
         )
 
-        await self.session.flush()
-
     async def seed(self, instances: list[SQLModel]) -> None:
         for index, instance in enumerate(instances):
             instance.id = index + 1
             await self.create_or_update(instance)
+
+        await self.session.flush()
 
     async def delete(
         self,

@@ -19,7 +19,8 @@ class BankAccount(BaseModel, WithTimestamps, WithSoftDelete, table=True):
     user: Optional["User"] = Relationship(back_populates="bank_accounts")
 
     purchases: list["Purchase"] = Relationship(
-        back_populates="bank_account", sa_relationship_kwargs={"cascade": "all, delete-orphan", "order_by": "Purchase.id"}
+        back_populates="bank_account",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan", "order_by": "Purchase.id"},
     )
 
 
