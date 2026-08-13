@@ -1,14 +1,14 @@
 from datetime import UTC, datetime
 from typing import Any
-from utils import DataUtils
 
 from fastapi import Depends
-from sqlalchemy import delete, asc, desc, inspect, select, update
+from sqlalchemy import asc, delete, desc, inspect, select, update
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import SQLModel
 
 from db.base.base_db import BaseDB
+from utils import DataUtils
 
 
 class BaseRepository:

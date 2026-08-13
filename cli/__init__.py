@@ -3,7 +3,9 @@ import asyncio
 import sys
 
 from db.base.base_db import BaseDB
+
 from .currency_rates import CurrencyRates
+
 
 async def currency_rates_update():
     try:

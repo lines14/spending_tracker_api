@@ -11,7 +11,7 @@ class BaseSeeder:
 
     async def run(self):
         raise NotImplementedError
-    
+
     async def seed(self, data_list):
         async with BaseDB() as db:
             await db.init_tables()

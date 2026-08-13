@@ -1,7 +1,7 @@
 from sqlalchemy import event, inspect
-from utils import DataUtils
 
 from repositories.base.redis_client import RedisClient
+from utils import DataUtils
 
 
 class BaseObserver:

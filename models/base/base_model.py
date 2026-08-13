@@ -3,9 +3,9 @@ from typing import Any
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, ValidationError, create_model
+from sqlalchemy import inspect
 from sqlalchemy.orm import declared_attr
 from sqlmodel import Field, SQLModel
-from sqlalchemy import inspect
 
 
 class BaseModel(SQLModel):
@@ -128,7 +128,7 @@ class BaseModel(SQLModel):
             object_id = id(obj)
             if object_id in visited:
                 return {"id": getattr(obj, "id", None)}
-            
+
             visited.add(object_id)
 
             result = {}
