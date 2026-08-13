@@ -1,4 +1,4 @@
-from sqlalchemy import select, inspect
+from sqlalchemy import inspect, select
 
 from db.observers.base.base_observer import BaseObserver
 from models import BankAccount, Purchase, User
@@ -25,7 +25,11 @@ class UserObserver(BaseObserver):
             keys.append(redis_client.create_key(target.login))
 
             if event_type == "delete" or cls._login_or_password_is_changed(target):
-                keys.append(redis_client.create_key("session", target.id))                
+                keys.append(redis_client.create_key("session", target.id))
+                old_login = cls._get_old_login_if_exists(target)
+
+                if old_login:
+                    keys.append(redis_client.create_key(old_login))
 
             query = select(BankAccount.id).where(BankAccount.user_id == target.id)
             bank_account_ids = connection.execute(query).scalars().all()
@@ -36,6 +40,7 @@ class UserObserver(BaseObserver):
 
                 query = select(Purchase.id).where(Purchase.account_id == bank_account_id)
                 purchase_ids = connection.execute(query).scalars().all()
+
                 for purchase_id in purchase_ids:
                     keys.append(redis_client.create_key("purchase", purchase_id))
 
@@ -56,5 +61,17 @@ class UserObserver(BaseObserver):
         if "hashed_password" in state.attrs and hasattr(state.attrs.hashed_password, "history"):
             password_changed = state.attrs.hashed_password.history.has_changes()
 
-        # return login_changed or password_changed
-        return password_changed
+        return login_changed or password_changed
+
+    @classmethod
+    def _get_old_login_if_exists(cls, target) -> str | None:
+        state = inspect(target)
+
+        if (
+            "login" in state.attrs
+            and hasattr(state.attrs.login, "history")
+            and hasattr(state.attrs.login.history, "deleted")
+        ):
+            return state.attrs.login.history.deleted[0]
+
+        return None
