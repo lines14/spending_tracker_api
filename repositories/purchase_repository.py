@@ -16,7 +16,7 @@ class PurchaseRepository(BaseRepository):
         await self.create(purchase)
 
     async def get_purchase(self, search_by: dict, with_soft_deleted: bool = False) -> PurchaseDTO | None:
-        redis_client = RedisClient()
+        redis_client = RedisClient.get_instance()
 
         search_by = DataUtils.filter_search_fields(search_by, self.model)
         key = redis_client.create_key("purchase", DataUtils.dict_to_model(search_by).id)

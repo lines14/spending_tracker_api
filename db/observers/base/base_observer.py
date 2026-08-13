@@ -43,7 +43,7 @@ class BaseObserver:
 
             @event.listens_for(session, "after_commit", once=True)
             def _on_commit(_session):
-                redis_client = RedisClient()
+                redis_client = RedisClient.get_instance()
 
                 for key in keys:
                     redis_client.sync_delete(key)

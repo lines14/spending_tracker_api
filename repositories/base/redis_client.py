@@ -1,3 +1,4 @@
+from typing import Optional
 import redis as sync_redis
 import redis.asyncio as async_redis
 
@@ -5,12 +6,34 @@ from config import Config
 
 
 class RedisClient:
-    __sync_pool = sync_redis.ConnectionPool.from_url(Config().redis_url)
-    __async_pool = async_redis.ConnectionPool.from_url(Config().redis_url)
+    _instance: Optional["RedisClient"] = None
 
     def __init__(self):
+        self.redis_url = Config().redis_url
+        self.__sync_pool = sync_redis.ConnectionPool.from_url(self.redis_url)
         self.__sync_client = sync_redis.Redis(connection_pool=self.__sync_pool)
-        self.__async_client = async_redis.Redis(connection_pool=self.__async_pool)
+        self.__async_pool: Optional[async_redis.ConnectionPool] = None
+        self.__async_client: Optional[async_redis.Redis] = None
+
+    @classmethod
+    def get_instance(cls) -> "RedisClient":
+        if cls._instance is None:
+            cls._instance = cls()
+
+        return cls._instance
+
+    async def init_async_pool(self) -> None:
+        if self.__async_client is None:
+            self.__async_pool = async_redis.ConnectionPool.from_url(self.redis_url)
+            self.__async_client = async_redis.Redis(connection_pool=self.__async_pool)
+
+    async def close_async_pool(self) -> None:
+        if self.__async_client:
+            await self.__async_client.aclose()
+            self.__async_client = None
+        if self.__async_pool:
+            await self.__async_pool.disconnect()
+            self.__async_pool = None
 
     def create_key(self, prefix: str, id: int | None = None) -> str:
         return f"{prefix}:{id!s}" if id else f"{prefix}"

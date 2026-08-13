@@ -12,7 +12,7 @@ class SessionRepository(BaseRepository):
     model = Session
 
     async def create_session(self, user_id: int, token: str, headers: dict) -> None:
-        redis_client = RedisClient()
+        redis_client = RedisClient.get_instance()
 
         hashed_token = CryptographyUtils.hash_string(token)
 
@@ -30,7 +30,7 @@ class SessionRepository(BaseRepository):
         await redis_client.setex(**data.model_dump())
 
     async def get_session(self, user_id: int) -> SessionDTO | None:
-        redis_client = RedisClient()
+        redis_client = RedisClient.get_instance()
         key = redis_client.create_key("session", user_id)
         stringified_session = await redis_client.get(key)
 

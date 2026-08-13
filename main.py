@@ -1,6 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 from os import getenv
+from repositories.base.redis_client import RedisClient
 
 import aioschedule
 from dotenv import load_dotenv
@@ -30,12 +31,15 @@ async def start_scheduler():
 async def lifespan(_app: FastAPI):
     init_observers()
     await BaseDB().init_tables()
+    redis_client = RedisClient.get_instance()
+    await redis_client.init_async_pool()
     task = asyncio.create_task(start_scheduler())
     background_tasks.add(task)
     task.add_done_callback(background_tasks.discard)
 
     yield
 
+    await redis_client.close_async_pool()
     await BaseDB.dispose_engine()
 
 

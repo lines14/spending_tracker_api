@@ -11,7 +11,7 @@ class PurchaseObserver(BaseObserver):
     @classmethod
     def _get_redis_keys_for_cleanup(cls, event_type: str, target, connection) -> list:
         keys = []
-        redis_client = RedisClient()
+        redis_client = RedisClient.get_instance()
 
         keys.append(redis_client.create_key("purchases"))
         keys.append(redis_client.create_key("bank_accounts"))

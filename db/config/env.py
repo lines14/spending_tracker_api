@@ -1,4 +1,3 @@
-import asyncio
 import os
 import traceback
 from logging.config import fileConfig
@@ -118,11 +117,8 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-async def clear_cache():
-    redis_client = RedisClient()
-    await redis_client.clear_cache()
-    await redis_client.close()
-    await redis_client.disconnect()
+def clear_cache():
+    RedisClient.get_instance().sync_clear_cache()
 
 
 def run_migrations_online() -> None:
@@ -141,7 +137,7 @@ def run_migrations_online() -> None:
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
 
-        asyncio.run(clear_cache())
+        clear_cache()
 
         with context.begin_transaction():
             context.run_migrations()

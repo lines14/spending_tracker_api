@@ -19,7 +19,7 @@ class BankAccountRepository(BaseRepository):
         self, search_by: dict, with_relations: bool = False, with_soft_deleted: bool = False
     ) -> BankAccountDTO | None:
         relations = []
-        redis_client = RedisClient()
+        redis_client = RedisClient.get_instance()
 
         if with_relations:
             relations = self.get_relations()
@@ -62,7 +62,7 @@ class BankAccountRepository(BaseRepository):
     ) -> list[BankAccountDTO]:
         relations = []
         stringified_bank_accounts_list = []
-        redis_client = RedisClient()
+        redis_client = RedisClient.get_instance()
 
         if with_relations:
             relations = self.get_relations()
@@ -197,4 +197,4 @@ class BankAccountRepository(BaseRepository):
 
     async def delete_all_bank_accounts(self, soft_delete: bool) -> None:
         await self.bulk_delete(soft_delete)
-        await CacheUtils.cascade_invalidate_bank_account_cache(RedisClient())
+        await CacheUtils.cascade_invalidate_bank_account_cache(RedisClient.get_instance())

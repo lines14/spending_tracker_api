@@ -39,7 +39,7 @@ class UserRepository(BaseRepository):
         return UserDTO(**json.loads(stringified_user))
 
     async def get_user_id_by_login(self, login: str, with_soft_deleted: bool = False) -> int | None:
-        redis_client = RedisClient()
+        redis_client = RedisClient.get_instance()
         id = await redis_client.get(login)
 
         if not id:
@@ -60,7 +60,7 @@ class UserRepository(BaseRepository):
         self, search_by: dict, with_relations: bool = False, with_soft_deleted: bool = False
     ) -> UserDTO | None:
         relations = []
-        redis_client = RedisClient()
+        redis_client = RedisClient.get_instance()
 
         if with_relations:
             relations = self.get_relations()
@@ -101,7 +101,7 @@ class UserRepository(BaseRepository):
     async def get_users(self, search_by: dict, with_relations: bool, with_soft_deleted: bool = False) -> list[UserDTO]:
         relations = []
         stringified_users_list = []
-        redis_client = RedisClient()
+        redis_client = RedisClient.get_instance()
 
         if with_relations:
             relations = self.get_relations()
