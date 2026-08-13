@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, inspect
 
 from db.observers.base.base_observer import BaseObserver
 from models import BankAccount, Purchase, User
@@ -23,7 +23,9 @@ class UserObserver(BaseObserver):
             keys.append(redis_client.create_key("user", target.id))
             keys.append(redis_client.create_key("user_with_relations", target.id))
             keys.append(redis_client.create_key(target.login))
-            keys.append(redis_client.create_key("session", target.id))
+
+            if event_type == "delete" or cls._login_or_password_is_changed(target):
+                keys.append(redis_client.create_key("session", target.id))                
 
             query = select(BankAccount.id).where(BankAccount.user_id == target.id)
             bank_account_ids = connection.execute(query).scalars().all()
@@ -41,3 +43,18 @@ class UserObserver(BaseObserver):
             keys.append(redis_client.create_key("user_bank_accounts_with_relations", target.id))
 
         return keys
+
+    @classmethod
+    def _login_or_password_is_changed(cls, target) -> bool:
+        login_changed = False
+        password_changed = False
+        state = inspect(target)
+
+        if "login" in state.attrs and hasattr(state.attrs.login, "history"):
+            login_changed = state.attrs.login.history.has_changes()
+
+        if "hashed_password" in state.attrs and hasattr(state.attrs.hashed_password, "history"):
+            password_changed = state.attrs.hashed_password.history.has_changes()
+
+        # return login_changed or password_changed
+        return password_changed

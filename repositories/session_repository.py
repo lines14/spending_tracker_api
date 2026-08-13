@@ -38,8 +38,3 @@ class SessionRepository(BaseRepository):
             return None
 
         return SessionDTO(**json.loads(stringified_session))
-
-    async def delete_session(self, user_id: int) -> None:
-        redis_client = RedisClient()
-        key = redis_client.create_key("session", user_id)
-        await redis_client.delete(key)
