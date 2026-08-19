@@ -24,7 +24,7 @@ class AuthService:
 
         existing_user = await self.user_repository.get_user(locals())
 
-        if not existing_user or not CryptographyUtils.verify_string(
+        if not existing_user or not CryptographyUtils.verify_password(
             credentials.password, existing_user.hashed_password
         ):
             raise InvalidCredentialsError()

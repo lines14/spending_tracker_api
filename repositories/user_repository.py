@@ -12,7 +12,9 @@ class UserRepository(BaseRepository):
     model = User
 
     async def create_user(self, credentials: CredentialsDTO) -> UserDTO:
-        user = self.model(login=credentials.login, hashed_password=CryptographyUtils.hash_string(credentials.password))
+        user = self.model(
+            login=credentials.login, hashed_password=CryptographyUtils.hash_password(credentials.password)
+        )
 
         await self.create(user)
         stringified_user = json.dumps(user.model_dump(), default=str)
@@ -27,7 +29,7 @@ class UserRepository(BaseRepository):
 
         if "password" in user:
             password = user["password"]
-            user["hashed_password"] = CryptographyUtils.hash_string(password)
+            user["hashed_password"] = CryptographyUtils.hash_password(password)
             del user["password"]
 
         result = await self.update_one(search_by, user)

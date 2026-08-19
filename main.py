@@ -1,7 +1,6 @@
 import asyncio
 from contextlib import asynccontextmanager
 from os import getenv
-from repositories.base.redis_client import RedisClient
 
 import aioschedule
 from dotenv import load_dotenv
@@ -12,6 +11,7 @@ from cli import CurrencyRates
 from db.base.base_db import BaseDB
 from db.observers import init_observers
 from middlewares import AuthMiddleware, LogErrorsMiddleware
+from repositories.base.redis_client import RedisClient
 from routes import bank_account_router, purchase_router, router, user_router
 
 load_dotenv()

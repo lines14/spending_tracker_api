@@ -1,4 +1,5 @@
 from typing import Optional
+
 import redis as sync_redis
 import redis.asyncio as async_redis
 
@@ -12,8 +13,8 @@ class RedisClient:
         self.redis_url = Config().redis_url
         self.__sync_pool = sync_redis.ConnectionPool.from_url(self.redis_url)
         self.__sync_client = sync_redis.Redis(connection_pool=self.__sync_pool)
-        self.__async_pool: Optional[async_redis.ConnectionPool] = None
-        self.__async_client: Optional[async_redis.Redis] = None
+        self.__async_pool: async_redis.ConnectionPool | None = None
+        self.__async_client: async_redis.Redis | None = None
 
     @classmethod
     def get_instance(cls) -> "RedisClient":

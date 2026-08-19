@@ -14,10 +14,11 @@ class SessionRepository(BaseRepository):
     async def create_session(self, user_id: int, token: str, headers: dict) -> None:
         redis_client = RedisClient.get_instance()
 
-        hashed_token = CryptographyUtils.hash_string(token)
-
         session = self.model(
-            user_id=user_id, token=hashed_token, host=headers.get("host"), user_agent=headers.get("user-agent")
+            user_id=user_id,
+            token=CryptographyUtils.generate_fingerprint(token),
+            host=headers.get("host"),
+            user_agent=headers.get("user-agent"),
         )
 
         await self.create(session)
