@@ -29,7 +29,7 @@ class JWTUtils:
                 options={"verify_exp": True},
             )
         except jwt.ExpiredSignatureError:
-            raise jwt.ExpiredSignatureError(json.dumps(DataUtils.responses.token_expired_error)) from None
+            raise jwt.ExpiredSignatureError(json.dumps(DataUtils.responses.session_expired_error)) from None
         except jwt.InvalidTokenError:
             raise jwt.InvalidTokenError(json.dumps(DataUtils.responses.invalid_token_error)) from None
 

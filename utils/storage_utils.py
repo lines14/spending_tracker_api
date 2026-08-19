@@ -1,17 +1,7 @@
-import os
-
-import classutilities
-
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+from pathlib import Path
 
 
 class StorageUtils:
-    @classutilities.classproperty
-    def private_key(cls) -> str:  # noqa: N805
-        with open("../storage/jwt/private.pem") as file:
-            return file.read()
-
-    @classutilities.classproperty
-    def public_key(cls) -> str:  # noqa: N805
-        with open("../storage/jwt/public.pem") as file:
-            return file.read()
+    _storage_path = Path(__file__).resolve().parent.parent / "storage" / "jwt"
+    private_key: str = (_storage_path / "private.pem").read_text()
+    public_key: str = (_storage_path / "public.pem").read_text()
