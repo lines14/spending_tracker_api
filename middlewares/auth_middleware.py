@@ -28,7 +28,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 if not session:
                     return await ResponseUtils.error(request, *DataUtils.responses.session_expired_error)
 
-                if not CryptographyUtils.verify_fingerprint(request_token, session.token):
+                if not CryptographyUtils.verify_fingerprint(request_token, session.token_fingerprint):
                     return await ResponseUtils.error(request, *DataUtils.responses.unauthenticated_error)
             except Exception as e:
                 raise e

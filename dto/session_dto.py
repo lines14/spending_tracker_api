@@ -6,6 +6,6 @@ class SessionDTO(BaseDTO):
     user_id: int
     host: str
     user_agent: str
-    token: str
+    token_fingerprint: str
     created_at: str
     updated_at: str

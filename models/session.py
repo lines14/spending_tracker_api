@@ -8,4 +8,4 @@ class Session(BaseModel, WithTimestamps, table=True):
     user_id: int = Field(index=True, nullable=False, foreign_key="users.id")
     host: str = Field(nullable=False)
     user_agent: str = Field(nullable=False)
-    token: str = Field(nullable=False)
+    token_fingerprint: str = Field(nullable=False)

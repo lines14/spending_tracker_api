@@ -26,7 +26,7 @@ class JWTUtils:
                 token,
                 cls.__parse_public_key(StorageUtils.public_key),
                 algorithms=[getenv("ENCODE_ALGORITHM")],
-                options={"verify_exp": False},
+                options={"verify_exp": True},
             )
         except jwt.ExpiredSignatureError:
             raise jwt.ExpiredSignatureError(json.dumps(DataUtils.responses.token_expired_error)) from None

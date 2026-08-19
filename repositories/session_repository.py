@@ -16,7 +16,7 @@ class SessionRepository(BaseRepository):
 
         session = self.model(
             user_id=user_id,
-            token=CryptographyUtils.generate_fingerprint(token),
+            token_fingerprint=CryptographyUtils.generate_fingerprint(token),
             host=headers.get("host"),
             user_agent=headers.get("user-agent"),
         )
