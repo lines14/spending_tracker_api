@@ -184,7 +184,6 @@ class BaseRepository:
 
         await self.session.flush()
 
-    @classmethod
     def get_relations(self) -> list[str]:
         paths = []
 
