@@ -184,19 +184,26 @@ class BaseRepository:
 
         await self.session.flush()
 
-    def get_relations(self):
+    @classmethod
+    def get_relations(self) -> list[str]:
         paths = []
 
-        def _scan(current_model, prefix=""):
+        def _scan(current_model, prefix="", visited=None):
+            if visited is None:
+                visited = set()
+
+            visited = visited | {current_model}
             mapper = inspect(current_model)
 
             for rel in mapper.relationships:
-                if rel.direction.name == "MANYTOONE":
+                related_model = rel.mapper.class_
+
+                if related_model in visited:
                     continue
 
-                path = f"{prefix}{rel.key}" if not prefix else f"{prefix}.{rel.key}"
+                path = f"{prefix}.{rel.key}" if prefix else rel.key
                 paths.append(path)
-                _scan(rel.mapper.class_, path)
+                _scan(related_model, path, visited)
 
         _scan(self.model)
         return paths
