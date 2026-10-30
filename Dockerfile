@@ -37,4 +37,5 @@ RUN echo 'alias currencies:update="python -c \"import cli; cli.run()\" currency_
 
 RUN /bin/sh -c "source ../home/myuser/.bashrc"
 
+ENTRYPOINT ["sh", "/app/docker-entrypoint.sh"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
