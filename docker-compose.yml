@@ -49,7 +49,6 @@ services:
     ports:
       - "9000:8000"
     volumes:
-      - .:/app
       - /app/.venv
     environment:
       - REDIS_HOST=redis
