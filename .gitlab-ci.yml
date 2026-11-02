@@ -1,0 +1,16 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  tags:
+    - vs3019-runner
+  resource_group: spending-tracker-api
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  before_script:
+      - cat "$ENV" > .env
+      - cat "$PRIVATE_KEY" > storage/jwt/private.pem
+      - cat "$PUBLIC_KEY" > storage/jwt/public.pem
+  script:
+    - docker compose -p spending-tracker-api up -d --build
