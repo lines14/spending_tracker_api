@@ -4,8 +4,8 @@ from typing import Any
 from fastapi import Depends
 from sqlalchemy import asc, delete, desc, inspect, select, update
 from sqlalchemy.dialects.mysql import insert
-from sqlalchemy.orm import InstrumentedAttribute
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import InstrumentedAttribute
 from sqlmodel import SQLModel
 
 from db.base.base_db import BaseDB
@@ -31,13 +31,12 @@ class BaseRepository:
         return result.scalars().all()
 
     async def get_first(
-        self, 
-        target: dict | SQLModel, 
-        with_soft_deleted: bool, 
-        order_by: InstrumentedAttribute | None = None
+        self, target: dict | SQLModel, with_soft_deleted: bool, order_by: InstrumentedAttribute | None = None
     ) -> Any | None:
         query = self.db.build_select_query(self.model, target, with_soft_deleted)
-        result = await self.session.execute(query.order_by(desc(order_by if order_by is not None else self.model.id)).limit(1))
+        result = await self.session.execute(
+            query.order_by(desc(order_by if order_by is not None else self.model.id)).limit(1)
+        )
         return result.scalars().first()
 
     async def get_one_or_none(self, target: dict | SQLModel, with_soft_deleted: bool) -> Any | None:
@@ -58,14 +57,16 @@ class BaseRepository:
         return res
 
     async def get_first_with_joinedload(
-        self, 
-        target: dict | SQLModel, 
-        keys: list[str], 
-        with_soft_deleted: bool, 
-        order_by: InstrumentedAttribute | None = None
+        self,
+        target: dict | SQLModel,
+        keys: list[str],
+        with_soft_deleted: bool,
+        order_by: InstrumentedAttribute | None = None,
     ) -> Any | None:
         query = self.db.build_select_query_with_joinedload(self.model, target, keys, with_soft_deleted)
-        result = await self.session.execute(query.order_by(desc(order_by if order_by is not None else self.model.id)).limit(1))
+        result = await self.session.execute(
+            query.order_by(desc(order_by if order_by is not None else self.model.id)).limit(1)
+        )
         res = result.unique().scalars().first()
 
         if res and not with_soft_deleted:
@@ -197,7 +198,7 @@ class BaseRepository:
             for rel in mapper.relationships:
                 related_model = rel.mapper.class_
 
-                if related_model in visited:
+                if related_model in visited or related_model.joinedload_disabled:
                     continue
 
                 path = f"{prefix}.{rel.key}" if prefix else rel.key

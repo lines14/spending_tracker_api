@@ -1,5 +1,5 @@
 import re
-from typing import Any
+from typing import Any, ClassVar
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, ValidationError, create_model
@@ -9,6 +9,8 @@ from sqlmodel import Field, SQLModel
 
 
 class BaseModel(SQLModel):
+    joinedload_disabled: ClassVar[bool] = False
+
     model_config = ConfigDict(
         from_attributes=True,
         validate_assignment=True,
