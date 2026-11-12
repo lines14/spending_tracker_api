@@ -14,3 +14,4 @@ deploy:
       - cat "$PUBLIC_KEY" > storage/jwt/public.pem
   script:
     - docker compose -p spending-tracker-api up -d --build
+    - docker compose -p spending-tracker-api exec -T spending_tracker_api bash -ic 'source ~/.bashrc && migrate && seed all && currencies:update'
