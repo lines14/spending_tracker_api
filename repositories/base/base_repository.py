@@ -25,9 +25,16 @@ class BaseRepository:
         self.model = model
         self.db = BaseDB(session)
 
-    async def get_all(self, target: dict | SQLModel | None = None, with_soft_deleted: bool = False) -> list[Any]:
+    async def get_all(
+        self, target: dict | SQLModel | None = None, with_soft_deleted: bool = False, limit: int | None = None
+    ) -> list[Any]:
         query = self.db.build_select_query(self.model, target or {}, with_soft_deleted)
-        result = await self.session.execute(query.order_by(asc(self.model.id)))
+        query = query.order_by(asc(self.model.id))
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        result = await self.session.execute(query)
         return result.scalars().all()
 
     async def get_first(
@@ -45,10 +52,19 @@ class BaseRepository:
         return result.scalars().one_or_none()
 
     async def get_all_with_joinedload(
-        self, keys: list[str] | None = None, with_soft_deleted: bool = False, target: dict | SQLModel | None = None
+        self,
+        keys: list[str] | None = None,
+        with_soft_deleted: bool = False,
+        target: dict | SQLModel | None = None,
+        limit: int | None = None,
     ) -> list[Any]:
         query = self.db.build_select_query_with_joinedload(self.model, target or {}, keys, with_soft_deleted)
-        result = await self.session.execute(query.order_by(asc(self.model.id)))
+        query = query.order_by(asc(self.model.id))
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        result = await self.session.execute(query)
         res = result.unique().scalars().all()
 
         if not with_soft_deleted:
