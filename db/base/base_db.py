@@ -81,6 +81,9 @@ class BaseDB:
             return [model.id == value]
 
         for key, value in instance_properties.items():
+            if key not in model.model_fields:
+                continue
+
             if value is not None:
                 if isinstance(value, (list, tuple, set)):
                     filter_expressions.append(getattr(model, key).in_(value))
