@@ -74,7 +74,7 @@ class BaseDB:
 
         instance_properties = target if isinstance(target, dict) else self.get_not_empty_properties(target)
 
-        if "id" in instance_properties and instance_properties["id"] is not None:
+        if not isinstance(target, dict) and instance_properties.get("id") is not None:
             value = instance_properties["id"]
             if isinstance(value, (list, tuple, set)):
                 return [model.id.in_(value)]
