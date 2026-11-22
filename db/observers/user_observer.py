@@ -24,7 +24,7 @@ class UserObserver(BaseObserver):
             keys.append(redis_client.create_key("user_with_relations", target.id))
             keys.append(redis_client.create_key(target.login))
 
-            if event_type == "delete" or cls._login_or_password_is_changed(target):
+            if event_type == "delete" or target.deleted_at is not None or cls._login_or_password_is_changed(target):
                 keys.append(redis_client.create_key("session", target.id))
                 old_login = cls._get_old_login_if_exists(target)
 
@@ -71,6 +71,7 @@ class UserObserver(BaseObserver):
             "login" in state.attrs
             and hasattr(state.attrs.login, "history")
             and hasattr(state.attrs.login.history, "deleted")
+            and state.attrs.login.history.deleted
         ):
             return state.attrs.login.history.deleted[0]
 
