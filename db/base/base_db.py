@@ -87,6 +87,8 @@ class BaseDB:
             if value is not None:
                 if isinstance(value, (list, tuple, set)):
                     filter_expressions.append(getattr(model, key).in_(value))
+                elif isinstance(value, str) and ("%" in value):
+                    filter_expressions.append(getattr(model, key).ilike(value))
                 else:
                     filter_expressions.append(getattr(model, key) == value)
 
