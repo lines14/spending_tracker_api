@@ -80,8 +80,10 @@ class BaseDB:
                 return [model.id.in_(value)]
             return [model.id == value]
 
+        synonyms = inspect(model).synonyms
+
         for key, value in instance_properties.items():
-            if key not in model.model_fields:
+            if key not in model.model_fields and key not in synonyms:
                 continue
 
             if value is not None:
